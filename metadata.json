@@ -1,0 +1,101 @@
+{
+  "project": {
+    "name": "COLORS OF ICADIYE: HUMAN RESPONSE TO ARCHITECTURAL IDENTITY",
+    "course": "MBL549E-Special Topics in Architectural Design Computing",
+    "institution": "Istanbul Technical University (ITU)",
+    "author": "Elifsu Yumurtaci",
+    "study_area": "Icadiye Street, Kuzguncuk, Istanbul, Turkey",
+    "created_at": "2026-06-10T08:37:21"
+  },
+  "datasets": {
+    "icadiye_cephe_renkleri": {
+      "description": "Building facade color data extracted from Google Street View images captured along Icadiye Street using KMeans color clustering. Each row corresponds to one GSV photograph and contains the dominant HEX color values of the visible facade.",
+      "source": "Google Street View (manual image capture + KMeans color analysis)",
+      "source_type": "Remote sensing / Street-level imagery",
+      "row_count": 76,
+      "column_count": 12,
+      "columns": [
+        "Görsel",
+        "Dosya Adı",
+        "Cadde",
+        "Nokta No",
+        "Heading",
+        "Enlem",
+        "Boylam",
+        "Renk 1 HEX",
+        "Renk 2 HEX",
+        "Renk 3 HEX",
+        "Renk 3 HEX.1",
+        "Unnamed: 11"
+      ],
+      "coordinate_system": {
+        "crs": "WGS84",
+        "epsg": "EPSG:4326",
+        "lat_col": "Enlem",
+        "lon_col": "Boylam",
+        "bounding_box": {
+          "min_lat": 41.032694,
+          "max_lat": 41.036435,
+          "min_lon": 29.029398,
+          "max_lon": 29.032219
+        }
+      },
+      "file": "icadiye_cephe_renkleri.pkl",
+      "created_at": "2026-06-10T08:37:21"
+    },
+    "icadiye_yorumlar": {
+      "description": "Google Places user reviews collected for public spaces and urban nodes along Icadiye Street. Used as a proxy indicator for pedestrian activity and place perception.",
+      "source": "Google Places API",
+      "source_type": "Crowdsourced / User-generated content",
+      "row_count": 16,
+      "column_count": 7,
+      "columns": [
+        "Source",
+        "Query",
+        "Location_Name",
+        "Review_Rating",
+        "Review_Text",
+        "Author_Name",
+        "Review_Time"
+      ],
+      "coordinate_system": {
+        "crs": null,
+        "epsg": null,
+        "note": "This dataset does not contain coordinate columns; spatial linkage is done via place name."
+      },
+      "file": "icadiye_yorumlar.pkl",
+      "created_at": "2026-06-10T08:37:21"
+    },
+    "icadiye_populerlik_siralama": {
+      "description": "Popularity ranking of places along Icadiye Street based on Google Places review count, rating, and photo count. Visual_Impact_Score is a composite derived indicator combining these metrics.",
+      "source": "Google Places API",
+      "source_type": "Crowdsourced / Platform metadata",
+      "row_count": 188,
+      "column_count": 8,
+      "columns": [
+        "Place_Name",
+        "Total_Reviews",
+        "Rating",
+        "Photo_Count",
+        "Latitude",
+        "Longitude",
+        "Nearest_Scan_Point",
+        "Visual_Impact_Score"
+      ],
+      "coordinate_system": {
+        "crs": "WGS84",
+        "epsg": "EPSG:4326",
+        "lat_col": "Latitude",
+        "lon_col": "Longitude",
+        "bounding_box": {
+          "min_lat": 41.008238,
+          "max_lat": 41.036657,
+          "min_lon": 28.978359,
+          "max_lon": 29.032513
+        }
+      },
+      "file": "icadiye_populerlik_siralama.pkl",
+      "created_at": "2026-06-10T08:37:21"
+    }
+  }
+}

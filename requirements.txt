@@ -1,0 +1,36 @@
+# Requirements for COLORS OF ICADIYE: HUMAN RESPONSE TO ARCHITECTURAL IDENTITY
+# MBL549E Special Topics in Architectural Design Computing  (Spring 25-26)
+# File: dataviz_colorsoficadiye.html
+# This is a single-file HTML/JavaScript project.
+# All dependencies are loaded via CDN, no local installation required.
+# Open the .html file directly in a modern browser (Chrome / Firefox recommended).
+
+# ─────────────────────────────────────────
+# JavaScript Libraries (loaded via CDN)
+# ─────────────────────────────────────────
+
+maplibre-gl==4.3.2
+# Interactive WebGL map renderer
+# https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js
+# https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css
+
+# ─────────────────────────────────────────
+# External APIs & Tile Services (runtime)
+# ─────────────────────────────────────────
+
+# OpenFreeMap — dark basemap tile style
+# https://tiles.openfreemap.org/styles/dark
+
+# Overpass API — OpenStreetMap building geometry for 3D extrusion
+# https://overpass-api.de/api/interpreter
+
+# Google Fonts — IBM Plex Mono (300, 400, 500, 600)
+# https://fonts.googleapis.com/css2?family=IBM+Plex+Mono
+
+# ─────────────────────────────────────────
+# Browser Requirements
+# ─────────────────────────────────────────
+
+# WebGL 2.0 support required (for MapLibre GL rendering)
+# Recommended: Chrome 90+, Firefox 90+, Safari 15+
+# No Node.js, Python, or build step required.

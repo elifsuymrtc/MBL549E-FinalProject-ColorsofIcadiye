@@ -1,0 +1,287 @@
+{
+  "icadiye_cephe_renkleri": {
+    "source_file": "icadiye_cephe_renkleri.xlsx",
+    "row_count": 76,
+    "column_count": 12,
+    "columns": {
+      "Görsel": {
+        "dtype": "float64",
+        "non_null_count": 0,
+        "null_count": 76,
+        "sample_values": []
+      },
+      "Dosya Adı": {
+        "dtype": "str",
+        "non_null_count": 76,
+        "null_count": 0,
+        "sample_values": [
+          "İcadiye_Caddesi_küçük2_0000_h239_lat41p033775_lon29p031362.jpg",
+          "İcadiye_Caddesi_küçük2_0000_h59_lat41p033775_lon29p031362.jpg",
+          "İcadiye_Caddesi_küçük2_0001_h239_lat41p033677_lon29p031440.jpg"
+        ]
+      },
+      "Cadde": {
+        "dtype": "str",
+        "non_null_count": 76,
+        "null_count": 0,
+        "sample_values": [
+          "İcadiye Caddesi 2",
+          "İcadiye Caddesi 2",
+          "İcadiye Caddesi 2"
+        ]
+      },
+      "Nokta No": {
+        "dtype": "int64",
+        "non_null_count": 76,
+        "null_count": 0,
+        "sample_values": [
+          "0",
+          "0",
+          "1"
+        ]
+      },
+      "Heading": {
+        "dtype": "str",
+        "non_null_count": 76,
+        "null_count": 0,
+        "sample_values": [
+          "239°",
+          "59°",
+          "239°"
+        ]
+      },
+      "Enlem": {
+        "dtype": "float64",
+        "non_null_count": 76,
+        "null_count": 0,
+        "sample_values": [
+          "41.033775",
+          "41.033775",
+          "41.033677"
+        ]
+      },
+      "Boylam": {
+        "dtype": "float64",
+        "non_null_count": 76,
+        "null_count": 0,
+        "sample_values": [
+          "29.031362",
+          "29.031362",
+          "29.03144"
+        ]
+      },
+      "Renk 1 HEX": {
+        "dtype": "str",
+        "non_null_count": 69,
+        "null_count": 7,
+        "sample_values": [
+          "#FFE599",
+          "#E06666",
+          "#FFF2CC"
+        ]
+      },
+      "Renk 2 HEX": {
+        "dtype": "str",
+        "non_null_count": 61,
+        "null_count": 15,
+        "sample_values": [
+          "#E06666",
+          "#0B5394",
+          "#F9CB9C"
+        ]
+      },
+      "Renk 3 HEX": {
+        "dtype": "str",
+        "non_null_count": 44,
+        "null_count": 32,
+        "sample_values": [
+          "#797E83",
+          "#F6B26B",
+          "#FFE599"
+        ]
+      },
+      "Renk 3 HEX.1": {
+        "dtype": "str",
+        "non_null_count": 11,
+        "null_count": 65,
+        "sample_values": [
+          "#990000",
+          "#E06666",
+          "#4D261F"
+        ]
+      },
+      "Unnamed: 11": {
+        "dtype": "str",
+        "non_null_count": 1,
+        "null_count": 75,
+        "sample_values": [
+          "#F6B26B"
+        ]
+      }
+    }
+  },
+  "icadiye_yorumlar": {
+    "source_file": "icadiye_yorumlar__1_.xlsx",
+    "row_count": 16,
+    "column_count": 7,
+    "columns": {
+      "Source": {
+        "dtype": "str",
+        "non_null_count": 16,
+        "null_count": 0,
+        "sample_values": [
+          "Public Space Perception",
+          "Public Space Perception",
+          "Public Space Perception"
+        ]
+      },
+      "Query": {
+        "dtype": "str",
+        "non_null_count": 16,
+        "null_count": 0,
+        "sample_values": [
+          "Kuzguncuk İskelesi",
+          "Kuzguncuk İskelesi",
+          "Kuzguncuk İskelesi"
+        ]
+      },
+      "Location_Name": {
+        "dtype": "str",
+        "non_null_count": 16,
+        "null_count": 0,
+        "sample_values": [
+          "Kuzguncuk",
+          "Kuzguncuk",
+          "Kuzguncuk"
+        ]
+      },
+      "Review_Rating": {
+        "dtype": "float64",
+        "non_null_count": 15,
+        "null_count": 1,
+        "sample_values": [
+          "5.0",
+          "5.0",
+          "4.0"
+        ]
+      },
+      "Review_Text": {
+        "dtype": "str",
+        "non_null_count": 16,
+        "null_count": 0,
+        "sample_values": [
+          "İBB vapur kafe hem fiyatlarıyla hem de huzurlu sakin ortamıyla bölgenin en güzel duraklarından.",
+          "Kuzguncuk, İstanbul Anadolu Yakası’nın en sevilen tarihi semtlerinden biri. Eskiden bu bölgede azınlıklar yaşarmış. O nedenle burada kilise, cami ve sinagogları yan yana görebilirsiniz. Günümüzde iki veya üç katlı cumbalı eski İstanbul evleri ve tarihi sokakları ile İstanbul’un en sevilen semtleri arasında bulunuyor.",
+          "Çok nezih,şehrin keşmekeşinden uzak.."
+        ]
+      },
+      "Author_Name": {
+        "dtype": "str",
+        "non_null_count": 15,
+        "null_count": 1,
+        "sample_values": [
+          "ma eylül",
+          "Burak Aynacı",
+          "Osman Muzaç"
+        ]
+      },
+      "Review_Time": {
+        "dtype": "str",
+        "non_null_count": 15,
+        "null_count": 1,
+        "sample_values": [
+          "6 ay önce",
+          "9 yıl önce",
+          "bir yıl önce"
+        ]
+      }
+    }
+  },
+  "icadiye_populerlik_siralama": {
+    "source_file": "icadiye_populerlik_siralama.xlsx",
+    "row_count": 188,
+    "column_count": 8,
+    "columns": {
+      "Place_Name": {
+        "dtype": "str",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "Metet Közde Döner, Kuzguncuk",
+          "Historical Kuzguncuk Bakery",
+          "Kuzguncuk Evleri"
+        ]
+      },
+      "Total_Reviews": {
+        "dtype": "int64",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "6365",
+          "4467",
+          "2914"
+        ]
+      },
+      "Rating": {
+        "dtype": "float64",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "4.3",
+          "4.4",
+          "4.7"
+        ]
+      },
+      "Photo_Count": {
+        "dtype": "int64",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "10",
+          "10",
+          "10"
+        ]
+      },
+      "Latitude": {
+        "dtype": "float64",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "41.0360542",
+          "41.0356634",
+          "41.0356182"
+        ]
+      },
+      "Longitude": {
+        "dtype": "float64",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "29.0295441",
+          "29.029891",
+          "29.0300243"
+        ]
+      },
+      "Nearest_Scan_Point": {
+        "dtype": "int64",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "1",
+          "4",
+          "4"
+        ]
+      },
+      "Visual_Impact_Score": {
+        "dtype": "float64",
+        "non_null_count": 188,
+        "null_count": 0,
+        "sample_values": [
+          "1.0",
+          "1.0",
+          "1.0"
+        ]
+      }
+    }
+  }
+}
