@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colors of Icadiye</title>
+<link href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07070f;font-family:'IBM Plex Mono','Courier New',monospace;color:#fff;overflow:hidden}
+#map{width:100vw;height:100vh}
+
+/* SPLASH */
+#splash1{position:fixed;inset:0;z-index:500;background:linear-gradient(180deg,#04040c 0%,#07070f 60%,#0a0818 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:opacity .7s}
+#splash1.gone{opacity:0;pointer-events:none}
+#splash2{position:fixed;inset:0;z-index:499;background:#07070f;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .7s;pointer-events:none}
+#splash2.active{opacity:1;pointer-events:all}
+#splash2.gone{opacity:0;pointer-events:none}
+#sc{position:absolute;bottom:0;left:0;width:100%;height:200px;pointer-events:none}
+.sp-wrap{max-width:900px;padding:40px 48px 0;text-align:center;position:relative;z-index:1}
+.sp-logo{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:44px;display:flex;justify-content:center;align-items:center;gap:12px}
+.sp-q{font-size:28px;font-weight:300;line-height:1.58;color:#fff;margin-bottom:44px;letter-spacing:-.01em}
+.sp-q .ha{color:#E8A84F;font-weight:500}
+.sp-q .hb{color:#C97AF7;font-weight:500}
+.sp-q .hc{color:#4FC97A;font-weight:500}
+.sp2-wrap{max-width:720px;padding:60px 48px;text-align:left}
+.sp2-label{font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:32px;border-left:3px solid #4f8ef7;padding-left:12px}
+.sp2-body{font-size:14px;font-weight:300;color:#fff;line-height:1.85;letter-spacing:.01em;margin-bottom:24px}
+.sp-prompt{font-size:8px;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.2);animation:blink 2.2s infinite}
+@keyframes blink{0%,100%{opacity:.15}50%{opacity:.7}}
+.sp-sep{width:1px;height:12px;background:rgba(255,255,255,.18)}
+
+/* HEADER — transparent, floats over map */
+#hdr{
+  position:fixed;top:0;left:0;right:0;height:44px;z-index:400;
+  background:transparent;
+  border-bottom:none;
+  box-shadow:none;
+  backdrop-filter:none;
+  display:flex;align-items:center;padding:0 20px;gap:14px;
+  overflow:hidden;
+}
+#hdr::before{display:none;}
+.tsm{font-size:9.5px;letter-spacing:.2em;color:rgba(255,255,255,.55);font-weight:300;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.tica{font-size:11px;letter-spacing:.25em;font-weight:600;text-transform:uppercase;display:flex;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.hsep{width:1px;height:16px;background:rgba(255,255,255,.2)}
+.sub{font-size:8.5px;color:rgba(255,255,255,.45);letter-spacing:.12em;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+#slbl{margin-left:auto;font-size:8px;letter-spacing:.12em;
+  background:rgba(7,7,15,.72);
+  color:rgba(160,200,255,.8);
+  border:1px solid rgba(100,160,255,.22);
+  border-radius:2px;padding:3px 11px;
+  text-transform:uppercase;
+  backdrop-filter:blur(8px);}
+
+/* INFO PANEL */
+#info{position:fixed;top:56px;right:18px;z-index:400;background:rgba(7,7,15,.97);border:1px solid rgba(255,255,255,.15);border-left:4px solid #4f8ef7;border-radius:4px;padding:28px 28px 24px 24px;backdrop-filter:blur(20px);min-width:360px;max-width:420px;box-shadow:0 12px 60px rgba(0,0,0,.7)}
+#info-num{font-size:80px;font-weight:300;color:#fff;line-height:.85;margin-bottom:14px;letter-spacing:-.04em;text-shadow:0 0 40px rgba(79,142,247,.35)}
+#info-title{font-size:14px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:1px;font-weight:600;line-height:1.5}
+#info-desc{font-size:11px;color:#fff;line-height:1.95;letter-spacing:.01em;margin-top:2px}
+#info-badge{display:inline-block;font-size:7px;letter-spacing:.18em;text-transform:uppercase;border-radius:2px;padding:3px 10px;margin-top:16px;border:1px solid rgba(100,180,255,.25);color:rgba(100,180,255,.8);background:rgba(100,180,255,.07)}
+
+/* LEFT PANELS */
+.lpanel{position:fixed;top:56px;left:18px;z-index:400;background:rgba(7,7,15,.96);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:18px;backdrop-filter:blur(16px);max-width:232px;display:none}
+.lp-t{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-bottom:14px;font-weight:500}
+.lp-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px}
+.lp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px}
+.lp-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0;margin-top:3px}
+.lp-label{font-size:9.5px;color:#fff;line-height:1.4}
+.lp-sub{font-size:8px;color:rgba(255,255,255,.78);margin-top:2px;line-height:1.55}
+.lp-hex{font-size:8px;color:rgba(255,255,255,.7);letter-spacing:.06em;margin-top:1px}
+.lp-sep{width:100%;height:1px;background:rgba(255,255,255,.12);margin:10px 0}
+.lp-icon-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.lp-icon-sym{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;border:1.5px solid}
+
+/* NAV */
+#snav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:400;display:flex;align-items:center;gap:7px;background:rgba(7,7,15,.9);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:10px 14px;backdrop-filter:blur(12px)}
+.nlbl{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-right:4px}
+.sbtn{font-size:8px;font-family:inherit;width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:2px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;font-weight:500}
+.sbtn:hover{background:rgba(79,142,247,.14);border-color:rgba(79,142,247,.3);color:#4f8ef7}
+.sbtn.on{background:rgba(79,142,247,.2);border-color:#4f8ef7;color:#4f8ef7}
+.narr{font-size:16px;width:30px;height:26px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:2px;color:rgba(255,255,255,.65);cursor:pointer;transition:all .2s}
+.narr:hover{color:#4f8ef7;border-color:rgba(79,142,247,.3)}
+
+#vbdg{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:100;font-size:8px;letter-spacing:.2em;text-transform:uppercase;border-radius:2px;padding:4px 12px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.65);background:rgba(7,7,15,.9);pointer-events:none}
+#ovl{position:fixed;inset:0;z-index:200;background:#07070f;opacity:0;pointer-events:none;transition:opacity .35s}
+#ovl.on{opacity:1;pointer-events:all}
+#bst{position:fixed;bottom:76px;right:18px;background:rgba(7,7,15,.9);border:1px solid rgba(255,255,255,.07);border-radius:3px;padding:5px 11px;font-size:8px;color:rgba(255,255,255,.35);letter-spacing:.1em;z-index:50;transition:opacity .6s}
+
+#dc,#pc,#cc,#ic{position:fixed;inset:0;pointer-events:none;z-index:10;opacity:0;transition:opacity .7s}
+#dc.vis,#pc.vis,#cc.vis,#ic.vis{opacity:1}
+#pc{z-index:11}#cc{z-index:12}#ic{z-index:13}
+#dot-tip{position:fixed;display:none;z-index:500;font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;padding:3px 8px;border-radius:2px;pointer-events:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);}
+.maplibregl-ctrl-top-left{display:none!important}
+
+/* REVIEWS PANEL */
+#rv-panel{position:fixed;inset:0;z-index:350;background:linear-gradient(170deg,#04040c 0%,#07070f 50%,#080616 100%);display:none;overflow:hidden}
+#rv-panel.vis{display:block}
+#rsc{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+#rv-inner{position:absolute;inset:0;z-index:1;overflow:hidden}
+#rv-header{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;padding:0 24px;gap:16px;background:transparent;}
+#rv-logo{font-size:11px;letter-spacing:.32em;text-transform:uppercase;display:flex;gap:1px;font-weight:500}
+#rv-quotes{position:absolute;top:56px;left:0;right:0;bottom:80px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr 1fr;gap:0;padding:0 24px 16px}
+.rv-quote{padding:16px 20px 16px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.rv-quote:nth-child(odd){padding-right:24px;border-right:1px solid rgba(255,255,255,.05)}
+.rv-quote:nth-child(even){padding-left:24px}
+.rv-text{font-size:13px;color:#fff;line-height:1.7;letter-spacing:.01em;font-weight:300}
+.rv-author{font-size:7.5px;color:rgba(255,255,255,.5);letter-spacing:.2em;text-transform:uppercase;margin-top:8px}
+.hl-color{color:#E8A84F;font-weight:500}
+.hl-colourful{color:#C97AF7;font-weight:500}
+.hl-coloured{color:#4f8ef7;font-weight:500}
+.hl-rainbow{color:#f74fa0;font-weight:500}
+.hl-vibrant{color:#4FC97A;font-weight:500}
+.hl-painted{color:#64b4ff;font-weight:500}
+/* SPLASH 3 */
+#splash3{position:fixed;inset:0;z-index:499;background:#07070f;display:none;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:opacity .5s}
+#splash3.active{display:flex}
+#splash3.gone{opacity:0;pointer-events:none}
+.sp3-wrap{max-width:860px;padding:0 40px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;align-items:start}
+.sp3-head{grid-column:1/-1;margin-bottom:8px}
+.sp3-title{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:12px}
+.sp3-subtitle{font-size:22px;font-weight:300;color:#fff;line-height:1.4;letter-spacing:.01em}
+.sp3-subtitle span{color:rgba(255,255,255,.4)}
+.sp3-card{display:flex;flex-direction:column;gap:10px}
+.sp3-icon{width:36px;height:36px;border:1px solid rgba(255,255,255,.15);border-radius:3px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.sp3-card-title{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.sp3-card-body{font-size:11px;color:rgba(255,255,255,.75);line-height:1.7;font-weight:300}
+.sp3-card-body em{color:#fff;font-style:normal;font-weight:400}
+.sp3-divider{grid-column:1/-1;height:1px;background:rgba(255,255,255,.07)}
+.sp3-footer{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between}
+.sp3-meta{font-size:8px;color:rgba(255,255,255,.25);letter-spacing:.12em}
+</style>
+</head>
+<body>
+
+<!-- SPLASH 3: Project context — audience, narrative, reflection -->
+<div id="splash3">
+  <div class="sp3-wrap">
+    <div class="sp3-head">
+      <div class="sp3-title">MBL549E · Urban Data Analytics · İTÜ 2026</div>
+      <div class="sp3-subtitle">A data-driven investigation of <span>façade colour</span><br>and <span>pedestrian density</span> along İcadiye Caddesi</div>
+    </div>
+
+    <div class="sp3-card">
+      <div class="sp3-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="6" r="3"/>
+          <path d="M3 17c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+        </svg>
+      </div>
+      <div class="sp3-card-title">Intended Audience</div>
+      <div class="sp3-card-body">
+        <em>Architects and urban designers</em> — including those without a data background — alongside planners, spatial researchers, and <em>environmental psychologists</em> interested in how built colour shapes human behaviour and spatial preference. Visualizations are layered: patterns read at a glance, precise metrics on hover.
+      </div>
+    </div>
+
+    <div class="sp3-card">
+      <div class="sp3-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L6 9 L10 11 L16 4"/>
+          <circle cx="16" cy="4" r="1.5" fill="#fff" stroke="none"/>
+        </svg>
+      </div>
+      <div class="sp3-card-title">Key Narrative</div>
+      <div class="sp3-card-body">
+        Does <em>façade colour diversity</em> drive <em>pedestrian engagement</em>? Using Google Places review counts and Street View imagery as proxies, this study treats İcadiye Caddesi as a dataset — its buildings as data points.
+      </div>
+    </div>
+
+    <div class="sp3-card">
+      <div class="sp3-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="9" r="7"/>
+          <path d="M9 5v4l3 2"/>
+        </svg>
+      </div>
+      <div class="sp3-card-title">Reflection</div>
+      <div class="sp3-card-body">
+        Colourful facades <em>do align with higher activity zones</em> — but the most active point sits next to the <em>Kuzguncuk ferry pier</em>. Transit proximity is a confounding factor: <em>colour enriches experience</em>, but connectivity likely drives density.
+      </div>
+    </div>
+
+    <div class="sp3-divider"></div>
+    <div class="sp3-footer">
+      <div class="sp3-meta">76 Street View images · 15 scan points · KMeans clustering · Google Places API</div>
+      <div class="sp-prompt" style="margin:0;font-size:8px">click to explore →</div>
+    </div>
+  </div>
+</div>
+
+<!-- SPLASH 1: Title + Question -->
+<div id="splash1">
+  <canvas id="sc"></canvas>
+  <div class="sp-wrap">
+    <div class="sp-logo">
+      <span id="sp-ltrs"></span>
+      <div class="sp-sep"></div>
+      <span style="color:rgba(255,255,255,.28)">Kuzguncuk · Üsküdar · Istanbul</span>
+    </div>
+    <div class="sp-q">
+      "How do <span class="ha">facade colors</span> along Icadiye Street in Kuzguncuk influence <span class="hb">pedestrian density</span> patterns, and what does this reveal about the <span class="hc">human experience</span> of site-specific architectural identity?"
+    </div>
+    <div class="sp-prompt">click or press any key to continue →</div>
+  </div>
+</div>
+
+<!-- SPLASH 2: Research context -->
+<div id="splash2">
+  <div class="sp2-wrap">
+    <div class="sp2-label">Research Context</div>
+    <div class="sp2-body">As contemporary cities trend toward standardized building typologies, neighborhoods with a distinct architectural identity become increasingly rare. Kuzguncuk, one of Istanbul's most characteristically preserved historic districts, offers a unique case where facade diversity, human scale, and spatial memory coexist within a rapidly transforming metropolis.</div>
+    <div class="sp2-body">This study examines how site-specific <span style="color:#C97AF7;font-weight:500">facade qualities</span> along <span style="color:#E8A84F;font-weight:500">İcadiye Street</span> relate to <span style="color:#4f8ef7;font-weight:500">pedestrian density</span>, providing evidence that architectural character is not merely aesthetic; it is a measurable driver of <span style="color:#4FC97A;font-weight:500">human behaviour</span> and <span style="color:#F74FA0;font-weight:500">spatial preference</span>.</div>
+    <div class="sp-prompt" style="margin-top:40px">click or press any key to explore →</div>
+  </div>
+</div>
+
+<div id="map"></div>
+<canvas id="dc"></canvas><canvas id="pc"></canvas><canvas id="cc"></canvas><canvas id="ic"></canvas>
+<div id="ovl"></div>
+<div id="bst">Loading buildings…</div>
+
+<div id="hdr">
+  <div style="display:flex;align-items:baseline;gap:7px">
+    <span class="tsm">Colors</span><span class="tsm" style="color:rgba(255,255,255,.18)">of</span>
+    <div class="tica" id="ltrs"></div>
+  </div>
+  <div class="hsep"></div>
+  <div class="sub">Kuzguncuk · Üsküdar · Istanbul</div>
+  <div id="slbl">Scene 1 / 10</div>
+</div>
+
+<div id="info">
+  <div id="info-num">01</div>
+  <div id="info-title"></div>
+  <div id="info-desc"></div>
+  <div id="info-badge">3D · North</div>
+</div>
+
+<!-- LP2: Landmarks -->
+<div class="lpanel" id="lp2">
+  <div class="lp-t">Key Landmarks</div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1 Q10 1 10 4.5 Q10 7 7 9 Q4 7 4 4.5 Q4 1 7 1Z"/><line x1="6" y1="1" x2="7" y2="0"/><circle cx="9.5" cy="3" r="1" fill="#fff" stroke="none"/></svg>
+    </div>
+    <div><div class="lp-label">Kuzguncuk Mosque</div><div class="lp-sub">Ottoman · Waterfront</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"/><line x1="3" y1="5" x2="11" y2="5"/></svg>
+    </div>
+    <div><div class="lp-label">Agios Panteleimonas</div><div class="lp-sub">Greek Orthodox Church</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="7,1 13,11 1,11"/><polygon points="7,13 1,3 13,3"/></svg>
+    </div>
+    <div><div class="lp-label">Beth Nissim Synagogue</div><div class="lp-sub">Jewish Heritage</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13 L2 7 L7 2 L12 7 L12 13 Z"/></svg>
+    </div>
+    <div><div class="lp-label">Kuzguncuk Evleri</div><div class="lp-sub">Historic Timber Houses</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="5" r="4"/><line x1="7" y1="9" x2="7" y2="13" stroke-width="2"/></svg>
+    </div>
+    <div><div class="lp-label">Kuzguncuk Bostanı</div><div class="lp-sub">Community Garden</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4" r="2.5"/><line x1="7" y1="6.5" x2="7" y2="12"/><path d="M3 9 Q7 9 11 9"/></svg>
+    </div>
+    <div><div class="lp-label">Kuzguncuk İskele</div><div class="lp-sub">Bosphorus Ferry Pier</div></div>
+  </div>
+</div>
+
+<!-- LP-SOCIAL: Urban Functions -->
+<div class="lpanel" id="lp-social">
+  <div class="lp-t">Urban Functions · Icadiye St.</div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h8l-1 6H3L2 4z"/><path d="M10 6q2 0 2 2t-2 2"/><path d="M4.5 2.5Q4 1 4.5 0.5M7 2.5Q6.5 1 7 0.5"/></svg>
+    </div>
+    <div><div class="lp-label">Café & Coffee</div><div class="lp-sub">PÜRUZE · Hausbrandt<br>Le Cafe Bleu · Begonvil Cafe<br>Susam's Coffee · Bay Mantı</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="1" x2="4" y2="13"/><line x1="10" y1="1" x2="10" y2="13"/><path d="M4 5Q7 5 7 7Q7 9 4 9"/></svg>
+    </div>
+    <div><div class="lp-label">Food & Dining</div><div class="lp-sub">Metet Közde Döner<br>Ekmek Teknesi · Pastafarian<br>Newali Meze</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="10" height="10"/><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="6" x2="7" y2="6"/><line x1="2" y1="9" x2="7" y2="9"/></svg>
+    </div>
+    <div><div class="lp-label">Book & Retail</div><div class="lp-sub">Nail Kitabevi & Cafe</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5.5"/><circle cx="5" cy="6" r="1.5" fill="#fff" stroke="none"/></svg>
+    </div>
+    <div><div class="lp-label">Art & Gallery</div><div class="lp-sub">Mona Art Gallery<br>Harmony Art Gallery</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="5" r="4"/><line x1="7" y1="9" x2="7" y2="13" stroke-width="2"/></svg>
+    </div>
+    <div><div class="lp-label">Park & Garden</div><div class="lp-sub">Kuzguncuk Bostanı · Kuzguncuk Park</div></div>
+  </div>
+</div>
+<div class="lpanel" id="lp3">
+  <div class="lp-t">Urban Function</div>
+  <div class="lp-row"><div class="lp-dot" style="background:#FF9800"></div><div class="lp-label">Food & Dining</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#C97AF7"></div><div class="lp-label">Café & Coffee</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#4FC97A"></div><div class="lp-label">Retail & Shop</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#F7C84F"></div><div class="lp-label">Art & Gallery</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#E8A84F"></div><div class="lp-label">Tourist & Culture</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#F74FA0"></div><div class="lp-label">Religious</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#64B4FF"></div><div class="lp-label">Park & Green</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#8CB5EF"></div><div class="lp-label">Health & Care</div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#9B9B9B"></div><div class="lp-label">Services</div></div>
+  <div class="lp-sep"></div>
+  <div style="font-size:7.5px;color:rgba(255,255,255,.38);line-height:1.8">Circle size → popularity score<br>Source: Google Places API</div>
+</div>
+
+<!-- LP5: Active zone colors -->
+<div class="lpanel" id="lp5">
+  <div class="lp-t">Facade Colors · Most Active Zone</div>
+  <div class="lp-row"><div class="lp-sq" style="background:#073763"></div><div><div class="lp-label">Deep Navy</div><div class="lp-hex">#073763</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#660000"></div><div><div class="lp-label">Dark Crimson</div><div class="lp-hex">#660000</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#783F04"></div><div><div class="lp-label">Terracotta</div><div class="lp-hex">#783F04</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#596472"></div><div><div class="lp-label">Steel Blue</div><div class="lp-hex">#596472</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#BF9000"></div><div><div class="lp-label">Ochre Gold</div><div class="lp-hex">#BF9000</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#B6D7A8"></div><div><div class="lp-label">Sage Green</div><div class="lp-hex">#B6D7A8</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#C9DAF8"></div><div><div class="lp-label">Pale Periwinkle</div><div class="lp-hex">#C9DAF8</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#B45F06"></div><div><div class="lp-label">Burnt Sienna</div><div class="lp-hex">#B45F06</div></div></div>
+</div>
+
+<!-- LP7: Most colorful functions — black/white SVG icons -->
+<div class="lpanel" id="lp7">
+  <div class="lp-t">Functions · Most Colorful Zone</div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h8l-1 6H3L2 4z"/><path d="M10 6q2 0 2 2t-2 2"/><path d="M4.5 2.5 Q4 1 4.5 0.5"/><path d="M7 2.5 Q6.5 1 7 0.5"/>
+      </svg>
+    </div>
+    <div><div class="lp-label">Café & Coffee</div><div class="lp-sub">Ivy Cafe · Begonvil Cafe<br>HERA ANTİQUE CAFE</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="1" x2="4" y2="13"/><line x1="10" y1="1" x2="10" y2="13"/><path d="M4 5 Q7 5 7 7 Q7 9 4 9"/>
+      </svg>
+    </div>
+    <div><div class="lp-label">Food & Dining</div><div class="lp-sub">Vanilin Chocolate<br>Appetito · Oylum Market</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 11 L3 2 L11 2 L12 11 Z"/><path d="M7 2 Q7 0 7 0 M5 2 Q5 0 5 0"/>
+      </svg>
+    </div>
+    <div><div class="lp-label">Retail & Shop</div><div class="lp-sub">Arçelik · Modern Aydınlatma</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="7" cy="7" r="5"/><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/>
+      </svg>
+    </div>
+    <div><div class="lp-label">Services</div><div class="lp-sub">Kuzguncuk Muhtarlığı<br>Saphira Event</div></div>
+  </div>
+</div>
+
+<!-- LP8: Least active/colorful = pt15 — black/white SVG icons -->
+<div class="lpanel" id="lp8">
+  <div class="lp-t">Facade Colors · Least Colorful Zone</div>
+  <div class="lp-row"><div class="lp-sq" style="background:#CFE2F3"></div><div><div class="lp-label">Ice Blue</div><div class="lp-hex">#CFE2F3</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#D9EAD3"></div><div><div class="lp-label">Pale Green</div><div class="lp-hex">#D9EAD3</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#B6D7A8"></div><div><div class="lp-label">Sage</div><div class="lp-hex">#B6D7A8</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#FFF2CC"></div><div><div class="lp-label">Cream</div><div class="lp-hex">#FFF2CC</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#8D9394"></div><div><div class="lp-label">Cool Grey</div><div class="lp-hex">#8D9394</div></div></div>
+  <div class="lp-row"><div class="lp-sq" style="background:#727988"></div><div><div class="lp-label">Slate</div><div class="lp-hex">#727988</div></div></div>
+  <div class="lp-sep"></div>
+  <div class="lp-t" style="margin-bottom:8px">Nearby Places</div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="7" y1="0" x2="7" y2="14"/><line x1="3" y1="4" x2="11" y2="4"/>
+      </svg>
+    </div>
+    <div><div class="lp-label">Health & Wellness</div><div class="lp-sub">Psk. Zeynep Cengiz<br>Terra Pia Psikolojik</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="1" x2="4" y2="13"/><line x1="10" y1="1" x2="10" y2="13"/><path d="M4 5 Q7 5 7 7 Q7 9 4 9"/>
+      </svg>
+    </div>
+    <div><div class="lp-label">Food & Grocery</div><div class="lp-sub">Bordo Gıda · Nutribliss</div></div>
+  </div>
+  <div class="lp-row">
+    <div style="width:26px;height:26px;border-radius:50%;background:rgba(8,8,18,.92);border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="7" cy="7" r="5.5"/><circle cx="5" cy="6" r="1.5" fill="#fff" stroke="none"/>
+      </svg>
+    </div>
+    <div><div class="lp-label">Art Atelier</div><div class="lp-sub">Rengin Ritmi Resim</div></div>
+  </div>
+</div>
+
+<!-- LP-FACADE: Facade Color Legend for Scene 1 -->
+<div class="lpanel" id="lp-facade" style="max-width:300px">
+  <div class="lp-t" style="border-left:2px solid #E8A84F;padding-left:8px;margin-left:-8px">Facade Colours</div>
+  <div style="font-size:7.5px;color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:10px;letter-spacing:.02em">Paint pigments extracted from 76 Street View images via KMeans clustering. Each dot cluster = real surface colours at street level.</div>
+
+  <!-- Round colour swatches + mini map preview -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#E06666;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Terracotta</span></div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#B6D7A8;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Sage Green</span></div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#F9CB9C;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Peach Beige</span></div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#A2C4C9;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Pale Teal</span></div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#DD7E6B;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Coral</span></div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#073763;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Deep Navy</span></div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#783F04;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Earth Brown</span></div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:11px;height:11px;border-radius:50%;background:#741B47;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.15)"></div><span style="font-size:7px;color:#fff">Deep Plum</span></div>
+  </div>
+
+  <!-- Mini map preview: real MapLibre tiles + colour dot overlay -->
+  <div style="font-size:7px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">Colour Map Preview</div>
+  <div style="border-radius:3px;border:1px solid rgba(255,255,255,.08);overflow:hidden;margin-bottom:4px;position:relative;height:80px">
+    <div id="mini-map-gl" style="position:absolute;inset:0"></div>
+    <canvas id="mini-map-preview" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+  </div>
+
+  <div class="lp-sep"></div>
+
+  <!-- House street scene with canvas walkers below -->
+  <div style="position:relative;background:rgba(255,255,255,.02);border-radius:3px;border:1px solid rgba(255,255,255,.07);overflow:hidden;margin-top:8px">
+    <!-- Houses SVG row -->
+    <div style="display:flex;align-items:flex-end;gap:2px;padding:10px 6px 0;min-height:82px">
+      <!-- h1: tiny cottage peach/terracotta -->
+      <svg width="30" height="42" viewBox="0 0 30 42" fill="none" style="flex-shrink:0">
+        <polygon points="15,2 29,14 1,14" fill="#DD7E6B" opacity="0.95"/>
+        <rect x="1" y="14" width="28" height="26" fill="#F9CB9C" opacity="0.92"/>
+        <rect x="4" y="17" width="7" height="6" fill="#A61C00" opacity="0.85"/>
+        <rect x="14" y="17" width="7" height="6" fill="#A61C00" opacity="0.85"/>
+        <rect x="12" y="28" width="7" height="12" fill="#783F04" opacity="0.9"/>
+      </svg>
+      <!-- h2: tall navy/steel -->
+      <svg width="26" height="72" viewBox="0 0 26 72" fill="none" style="flex-shrink:0">
+        <polygon points="13,2 25,18 1,18" fill="#073763" opacity="0.95"/>
+        <rect x="1" y="18" width="24" height="52" fill="#596472" opacity="0.92"/>
+        <rect x="3" y="22" width="6" height="6" fill="#C9DAF8" opacity="0.8"/>
+        <rect x="13" y="22" width="6" height="6" fill="#FFF2CC" opacity="0.8"/>
+        <rect x="3" y="34" width="6" height="6" fill="#C9DAF8" opacity="0.8"/>
+        <rect x="13" y="34" width="6" height="6" fill="#FFF2CC" opacity="0.8"/>
+        <rect x="10" y="58" width="7" height="12" fill="#783F04" opacity="0.9"/>
+      </svg>
+      <!-- h3: wide terracotta/crimson -->
+      <svg width="44" height="55" viewBox="0 0 44 55" fill="none" style="flex-shrink:0">
+        <polygon points="22,2 43,16 1,16" fill="#990000" opacity="0.95"/>
+        <rect x="1" y="16" width="42" height="37" fill="#E06666" opacity="0.92"/>
+        <rect x="4" y="20" width="8" height="7" fill="#F9CB9C" opacity="0.85"/>
+        <rect x="16" y="20" width="8" height="7" fill="#F9CB9C" opacity="0.85"/>
+        <rect x="28" y="20" width="8" height="7" fill="#F9CB9C" opacity="0.85"/>
+        <rect x="18" y="38" width="8" height="15" fill="#4D261F" opacity="0.9"/>
+      </svg>
+      <!-- h4: slim plum/green -->
+      <svg width="22" height="64" viewBox="0 0 22 64" fill="none" style="flex-shrink:0">
+        <polygon points="11,2 21,14 1,14" fill="#741B47" opacity="0.95"/>
+        <rect x="1" y="14" width="20" height="48" fill="#274E13" opacity="0.92"/>
+        <rect x="3" y="18" width="5" height="5" fill="#F9CB9C" opacity="0.85"/>
+        <rect x="11" y="18" width="5" height="5" fill="#F9CB9C" opacity="0.85"/>
+        <rect x="3" y="30" width="5" height="5" fill="#F9CB9C" opacity="0.75"/>
+        <rect x="11" y="30" width="5" height="5" fill="#F9CB9C" opacity="0.75"/>
+        <rect x="8" y="52" width="6" height="12" fill="#660000" opacity="0.9"/>
+      </svg>
+      <!-- h5: ochre/teal wide -->
+      <svg width="38" height="48" viewBox="0 0 38 48" fill="none" style="flex-shrink:0">
+        <polygon points="19,2 37,14 1,14" fill="#BF9000" opacity="0.95"/>
+        <rect x="1" y="14" width="36" height="32" fill="#A2C4C9" opacity="0.92"/>
+        <rect x="3" y="18" width="7" height="6" fill="#FFF2CC" opacity="0.8"/>
+        <rect x="14" y="18" width="7" height="6" fill="#A64D79" opacity="0.85"/>
+        <rect x="25" y="18" width="7" height="6" fill="#FFF2CC" opacity="0.8"/>
+        <rect x="16" y="32" width="7" height="14" fill="#596472" opacity="0.9"/>
+      </svg>
+      <!-- h6: tiny sage/coral -->
+      <svg width="24" height="38" viewBox="0 0 24 38" fill="none" style="flex-shrink:0">
+        <polygon points="12,2 23,12 1,12" fill="#B6D7A8" opacity="0.95"/>
+        <rect x="1" y="12" width="22" height="24" fill="#DD7E6B" opacity="0.92"/>
+        <rect x="3" y="15" width="5" height="5" fill="#FFF2CC" opacity="0.8"/>
+        <rect x="13" y="15" width="5" height="5" fill="#FFF2CC" opacity="0.8"/>
+        <rect x="9" y="26" width="6" height="10" fill="#A61C00" opacity="0.9"/>
+      </svg>
+      <!-- h7: medium earth/cream -->
+      <svg width="32" height="50" viewBox="0 0 32 50" fill="none" style="flex-shrink:0">
+        <polygon points="16,2 31,14 1,14" fill="#B45F06" opacity="0.95"/>
+        <rect x="1" y="14" width="30" height="34" fill="#8E8374" opacity="0.92"/>
+        <rect x="3" y="18" width="6" height="6" fill="#FFF2CC" opacity="0.8"/>
+        <rect x="13" y="18" width="6" height="6" fill="#FFE599" opacity="0.85"/>
+        <rect x="13" y="34" width="7" height="14" fill="#4D261F" opacity="0.9"/>
+      </svg>
+    </div>
+    <!-- Street line -->
+    <div style="height:2px;background:rgba(255,255,255,.1);margin:0 2px"></div>
+    <!-- Walking people canvas -->
+    <canvas id="facade-walkers" style="display:block;width:100%;height:28px"></canvas>
+  </div>
+  <div style="font-size:7px;color:rgba(255,255,255,.5);letter-spacing:.05em;margin-top:6px">15 scan points · KMeans clustering · 76 images</div>
+</div>
+
+<!-- LP11: Top 3 colours at most visited zone -->
+<div class="lpanel" id="lp11">
+  <div class="lp-t" style="border-left:2px solid #E8A84F;padding-left:8px;margin-left:-8px">Top 3 Colours · Most Visited</div>
+  <div style="font-size:7.5px;color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:12px">Dominant facade pigments at Scan Point 1 — the street's busiest node with a pop score of 11,558.</div>
+  <div class="lp-row" style="align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:36px;height:36px;border-radius:50%;background:#073763;box-shadow:0 0 0 2px rgba(255,255,255,.15);flex-shrink:0"></div>
+    <div><div class="lp-label">#1 · Deep Navy</div><div class="lp-hex">#073763</div></div>
+  </div>
+  <div class="lp-row" style="align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:36px;height:36px;border-radius:50%;background:#B6D7A8;box-shadow:0 0 0 2px rgba(255,255,255,.15);flex-shrink:0"></div>
+    <div><div class="lp-label">#2 · Sage Green</div><div class="lp-hex">#B6D7A8</div></div>
+  </div>
+  <div class="lp-row" style="align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:36px;height:36px;border-radius:50%;background:#783F04;box-shadow:0 0 0 2px rgba(255,255,255,.15);flex-shrink:0"></div>
+    <div><div class="lp-label">#3 · Earth Brown</div><div class="lp-hex">#783F04</div></div>
+  </div>
+  <div class="lp-sep"></div>
+  <div style="font-size:7px;color:rgba(255,255,255,.5)">Pop score 11,558 · Scan Point 1</div>
+</div>
+
+<!-- LP12: Top 3 colours at least visited zone -->
+<div class="lpanel" id="lp12">
+  <div class="lp-t" style="border-left:2px solid #8CB5EF;padding-left:8px;margin-left:-8px">Top 3 Colours · Least Visited</div>
+  <div style="font-size:7.5px;color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:12px">Dominant facade pigments at Scan Point 15 — the street's quietest node with a pop score of just 20.</div>
+  <div class="lp-row" style="align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:36px;height:36px;border-radius:50%;background:#B6D7A8;box-shadow:0 0 0 2px rgba(255,255,255,.15);flex-shrink:0"></div>
+    <div><div class="lp-label">#1 · Sage Green</div><div class="lp-hex">#B6D7A8</div></div>
+  </div>
+  <div class="lp-row" style="align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:36px;height:36px;border-radius:50%;background:#FFF2CC;box-shadow:0 0 0 2px rgba(255,255,255,.15);flex-shrink:0"></div>
+    <div><div class="lp-label">#2 · Cream</div><div class="lp-hex">#FFF2CC</div></div>
+  </div>
+  <div class="lp-row" style="align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:36px;height:36px;border-radius:50%;background:#8D9394;box-shadow:0 0 0 2px rgba(255,255,255,.15);flex-shrink:0"></div>
+    <div><div class="lp-label">#3 · Cool Grey</div><div class="lp-hex">#8D9394</div></div>
+  </div>
+  <div class="lp-sep"></div>
+  <div style="font-size:7px;color:rgba(255,255,255,.5)">Pop score 20 · Scan Point 15</div>
+</div>
+
+<!-- LP13: Photo Count Density legend -->
+<div class="lpanel" id="lp13">
+  <div class="lp-t">Photo Count Density</div>
+  <div style="font-size:7.5px;color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:12px">Circle size = number of photos taken at each scan zone. A visual engagement metric — high photo counts signal spots people find worth documenting.</div>
+  <div class="lp-row"><div class="lp-dot" style="background:#4f8ef7;width:18px;height:18px;border-radius:50%"></div><div><div class="lp-label">Large circle</div><div class="lp-sub">High photo count</div></div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#4f8ef7;width:10px;height:10px;border-radius:50%"></div><div><div class="lp-label">Small circle</div><div class="lp-sub">Low photo count</div></div></div>
+  <div class="lp-sep"></div>
+  <div style="font-size:7px;color:rgba(255,255,255,.5)">Source: Google Places photo counts</div>
+</div>
+
+<!-- LP14: Review Count Density legend -->
+<div class="lpanel" id="lp14">
+  <div class="lp-t">Review Count Density</div>
+  <div style="font-size:7.5px;color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:12px">Circle size = number of written reviews at each scan zone. A qualitative engagement metric — high review counts mean visitors felt compelled to describe their experience.</div>
+  <div class="lp-row"><div class="lp-dot" style="background:#C97AF7;width:18px;height:18px;border-radius:50%"></div><div><div class="lp-label">Large circle</div><div class="lp-sub">High review count</div></div></div>
+  <div class="lp-row"><div class="lp-dot" style="background:#C97AF7;width:10px;height:10px;border-radius:50%"></div><div><div class="lp-label">Small circle</div><div class="lp-sub">Low review count</div></div></div>
+  <div class="lp-sep"></div>
+  <div style="font-size:7px;color:rgba(255,255,255,.5)">Source: Google Places review counts</div>
+</div>
+
+<div id="dot-tip"></div>
+<div id="vbdg">3D · North</div>
+
+<div id="snav">
+  <span class="nlbl">Scene</span>
+  <button class="narr" onclick="prevScene()">‹</button>
+  <button class="sbtn on" onclick="goScene(0)">01</button>
+  <button class="sbtn" onclick="goScene(1)">02</button>
+  <button class="sbtn" onclick="goScene(2)">03</button>
+  <button class="sbtn" onclick="goScene(3)">04</button>
+  <button class="sbtn" onclick="goScene(4)">05</button>
+  <button class="sbtn" onclick="goScene(5)">06</button>
+  <button class="sbtn" onclick="goScene(6)">07</button>
+  <button class="sbtn" onclick="goScene(7)">08</button>
+  <button class="sbtn" onclick="goScene(8)">09</button>
+  <button class="sbtn" onclick="goScene(9)">10</button>
+  <button class="narr" onclick="nextScene()">›</button>
+</div>
+
+<script>
+var TCOLS=['#e8a84f','#4f8ef7','#f74fa0','#4fc97a','#c97af7','#f7c84f','#64b4ff','#e8a84f','#4f8ef7','#f74fa0','#4fc97a','#c97af7'];
+var SPLASH_COLS=['#e8a84f','#4f8ef7','#f74fa0','#4fc97a','#c97af7','#f7c84f','#64b4ff','#FF9800','#E06666','#A2C4C9','#DD7E6B'];
+
+// Header + splash letters
+[{l:'I',c:'#e8a84f'},{l:'C',c:'#4f8ef7'},{l:'A',c:'#f74fa0'},{l:'D',c:'#4fc97a'},{l:'I',c:'#c97af7'},{l:'Y',c:'#f7c84f'},{l:'E',c:'#64b4ff'}].forEach(function(o){
+  var s=document.createElement('span');s.textContent=o.l;s.style.color=o.c;document.getElementById('ltrs').appendChild(s);
+  var s2=document.createElement('span');s2.textContent=o.l;s2.style.color=o.c;s2.style.fontWeight='500';s2.style.letterSpacing='.35em';document.getElementById('sp-ltrs').appendChild(s2);
+});
+
+// SPLASH ANIMATION
+var sc=document.getElementById('sc'),sctx=sc.getContext('2d');
+var splashW=[];var splashGone=false;
+function initSplash(){
+  sc.width=window.innerWidth;sc.height=200;
+  splashW=Array.from({length:22},function(){
+    return{x:Math.random()*window.innerWidth,y:80+Math.random()*80,speed:0.5+Math.random()*0.8,
+      color:SPLASH_COLS[Math.floor(Math.random()*SPLASH_COLS.length)],
+      size:7+Math.random()*11,bobPhase:Math.random()*Math.PI*2,
+      dir:Math.random()>0.5?1:-1,opacity:0.35+Math.random()*0.55};
+  });
+}
+function animSplash(){
+  if(splashGone)return;
+  sctx.clearRect(0,0,sc.width,sc.height);
+  splashW.forEach(function(w){
+    w.x+=w.speed*w.dir;w.bobPhase+=0.07;
+    if(w.x>sc.width+40)w.x=-40;if(w.x<-40)w.x=sc.width+40;
+    var bob=Math.sin(w.bobPhase)*2,s=w.size;
+    sctx.save();sctx.globalAlpha=w.opacity;
+    // shadow
+    sctx.beginPath();sctx.ellipse(w.x+1,w.y+s*.6+2,s*.26,s*.09,0,0,Math.PI*2);sctx.fillStyle='rgba(0,0,0,0.15)';sctx.fill();
+    // legs
+    var ls=Math.sin(w.bobPhase*2.8)*s*.13;
+    sctx.beginPath();sctx.arc(w.x-s*.09,w.y+bob+s*.55+ls,s*.1,0,Math.PI*2);sctx.fillStyle=w.color+'99';sctx.fill();
+    sctx.beginPath();sctx.arc(w.x+s*.09,w.y+bob+s*.55-ls,s*.1,0,Math.PI*2);sctx.fillStyle=w.color+'99';sctx.fill();
+    // body
+    sctx.beginPath();sctx.ellipse(w.x,w.y+bob+s*.22,s*.2,s*.29,0,0,Math.PI*2);sctx.fillStyle=w.color;sctx.fill();
+    // head
+    sctx.beginPath();sctx.arc(w.x,w.y+bob-s*.1,s*.18,0,Math.PI*2);sctx.fillStyle=w.color;sctx.fill();
+    sctx.restore();
+  });
+  requestAnimationFrame(animSplash);
+}
+initSplash();animSplash();
+
+var splashStage=0;
+function advanceSplash(){
+  if(splashStage===0){
+    splashStage=1;
+    document.getElementById('splash1').classList.add('gone');
+    document.getElementById('splash2').classList.add('active');
+    splashGone=false;
+  } else if(splashStage===1){
+    splashStage=2;
+    document.getElementById('splash2').classList.add('gone');
+    document.getElementById('splash3').classList.add('active');
+    splashGone=false;
+  } else if(splashStage===2){
+    splashStage=3;
+    splashGone=true;
+    document.getElementById('splash3').classList.add('gone');
+    applyScene(0);
+  }
+}
+document.getElementById('splash1').addEventListener('click',advanceSplash);
+document.getElementById('splash2').addEventListener('click',advanceSplash);
+document.getElementById('splash3').addEventListener('click',advanceSplash);
+document.addEventListener('keydown',function(e){if(splashStage<3)advanceSplash();});
+
+// DATA
+var FACADE_DATA=[
+  {lon:29.031362,lat:41.033775,colors:["#FFE599","#E06666","#0B5394","#F6B26B","#797E83"]},
+  {lon:29.03144,lat:41.033677,colors:["#FFF2CC","#F9CB9C","#FFE599","#E06666","#D9EAD3"]},
+  {lon:29.031518,lat:41.033578,colors:["#990000","#FFF2CC","#B6D7A8","#FFE599","#D9EAD3"]},
+  {lon:29.031596,lat:41.03348,colors:["#4D261F","#990000","#F9CB9C","#FFF2CC","#E06666"]},
+  {lon:29.031674,lat:41.033382,colors:["#741B47","#4D261F","#F9CB9C","#274E13"]},
+  {lon:29.031752,lat:41.033284,colors:["#660000","#FF9900","#741B47","#274E13","#F9CB9C"]},
+  {lon:29.031829,lat:41.033185,colors:["#FF9900","#F9CB9C","#F6B26B","#DD7E6B"]},
+  {lon:29.031907,lat:41.033087,colors:["#A64D79","#F9CB9C","#F6B26B"]},
+  {lon:29.031985,lat:41.032989,colors:["#A64D79","#D9EAD3","#B6D7A8","#96866D","#FFF2CC"]},
+  {lon:29.032063,lat:41.032891,colors:["#CAE1F2","#727988","#FFF2CC","#5A606A"]},
+  {lon:29.032141,lat:41.032792,colors:["#CFE2F3","#D9EAD3","#F9CB9C","#FFF2CC"]},
+  {lon:29.032219,lat:41.032694,colors:["#B6D7A8","#FFF2CC","#8D9394"]},
+  {lon:29.029398,lat:41.036435,colors:["#073763","#FFF2CC","#596472","#783F04","#B6D7A8","#660000"]},
+  {lon:29.029468,lat:41.03634,colors:["#B6D7A8","#D9EAD3","#BF9000","#660000"]},
+  {lon:29.029538,lat:41.036245,colors:["#C9DAF8","#D9EAD3","#783F04","#FFF2CC"]},
+  {lon:29.029609,lat:41.03615,colors:["#FFE599","#783F04","#FFF2CC"]},
+  {lon:29.029679,lat:41.036055,colors:["#D9EAD3","#B45F06","#F3F3F3"]},
+  {lon:29.029749,lat:41.035959,colors:["#E6B8AF","#B6D7A8","#FFF2CC"]},
+  {lon:29.029819,lat:41.035864,colors:["#EA9999","#E6B8AF","#D9EAD3"]},
+  {lon:29.029889,lat:41.035769,colors:["#A2C4C9","#A61C00","#DD7E6B","#CFE2F3"]},
+  {lon:29.02996,lat:41.035674,colors:["#A2C4C9","#DD7E6B","#FCE5CD"]},
+  {lon:29.03003,lat:41.035579,colors:["#FFF2CC","#FCE5CD"]},
+  {lon:29.0301,lat:41.035484,colors:["#FFD966","#EA9999","#FCE5CD","#FFE599"]},
+  {lon:29.03017,lat:41.035389,colors:["#E69138","#741B47","#FFE599","#D9EAD3"]},
+  {lon:29.030241,lat:41.035294,colors:["#FFF2CC","#A61C00","#DD7E6B","#E6B8AF"]},
+  {lon:29.030311,lat:41.035199,colors:["#FFF2CC","#F4CCCC"]},
+  {lon:29.030381,lat:41.035103,colors:["#FCE5CD"]},
+  {lon:29.030451,lat:41.035008,colors:["#FFF2CC","#F9CB9C","#B6D7A8"]},
+  {lon:29.030521,lat:41.034913,colors:["#B6D7A8","#CFE2F3","#EA9999"]},
+  {lon:29.030592,lat:41.034818,colors:["#8E8374","#FFF2CC","#FFE599","#D9EAD3","#76A5AF"]},
+  {lon:29.030662,lat:41.034723,colors:["#8E8374","#CC4125","#FFF2CC","#E06666"]},
+  {lon:29.030732,lat:41.034628,colors:["#FFF2CC","#CC4125","#8E8374"]},
+  {lon:29.030802,lat:41.034533,colors:["#8E8374","#FFF2CC","#CC4125","#274E13","#A61C00"]},
+  {lon:29.030873,lat:41.034438,colors:["#274E13","#A61C00"]},
+  {lon:29.030943,lat:41.034343,colors:["#45818E","#FFF2CC"]},
+  {lon:29.031013,lat:41.034248,colors:["#741B47","#F1C232","#B6D7A8"]},
+  {lon:29.031153,lat:41.034057,colors:["#134F5C","#DD7E6B","#E69138"]},
+  {lon:29.031224,lat:41.033962,colors:["#FCE5CD","#134F5C","#85200C"]},
+  {lon:29.031294,lat:41.033867,colors:["#E06666","#434343"]},
+  {lon:29.031364,lat:41.033772,colors:["#F9CB9C","#E06666","#525866","#0B5394","#F6B26B"]}
+];
+
+var DENSITY_DATA=[
+  {pt:1,lat:41.036417,lon:29.029485,pop:11558,photoCount:892,reviewCount:11558,color:"#C97AF7",label:"Café & Coffee",funcs:["Café & Coffee","Food & Dining","Retail","Park"],landmarks:[{name:"Metet Közde Döner",pop:6372,color:"#FF9800"},{name:"Ismet Baba Fish Rest.",pop:2751,color:"#FF9800"},{name:"Kuzguncuk Cinaralti Cafe",pop:1167,color:"#C97AF7"},{name:"Espressolab",pop:563,color:"#C97AF7"},{name:"Dilim Pastanesi",pop:542,color:"#FF9800"}]},
+  {pt:2,lat:41.036104,lon:29.029666,pop:965,photoCount:62,reviewCount:965,color:"#C97AF7",label:"Café & Coffee",funcs:["Café & Coffee","Food","Religious"],landmarks:[{name:"Kuzguncuk Klas Köfte",pop:574,color:"#FF9800"},{name:"Kosinitza Coffee",pop:150,color:"#C97AF7"},{name:"Church of Ayios Yeorgios",pop:41,color:"#F74FA0"}]},
+  {pt:3,lat:41.035923,lon:29.029798,pop:2841,photoCount:211,reviewCount:2841,color:"#C97AF7",label:"Café & Coffee",funcs:["Café & Coffee","Food & Dining"],landmarks:[{name:"Ekmek Teknesi",pop:1204,color:"#FF9800"},{name:"Pastafarian",pop:646,color:"#FF9800"},{name:"Island Cafe",pop:218,color:"#C97AF7"}]},
+  {pt:4,lat:41.035647,lon:29.030091,pop:9401,photoCount:724,reviewCount:9401,color:"#E8A84F",label:"Tourist & Culture",funcs:["Tourist & Culture","Café","Food"],landmarks:[{name:"Historical Kuzguncuk Bakery",pop:4407,color:"#FF9800"},{name:"Kuzguncuk Evleri",pop:2894,color:"#E8A84F"},{name:"Kuzgun Kahvesi",pop:1234,color:"#C97AF7"}]},
+  {pt:5,lat:41.035350,lon:29.030267,pop:3502,photoCount:178,reviewCount:3502,color:"#F7C84F",label:"Art & Gallery",funcs:["Art & Gallery","Café","Food","Retail"],landmarks:[{name:"PÜRUZE",pop:1438,color:"#C97AF7"},{name:"Nail Kitabevi & Cafe",pop:975,color:"#4FC97A"},{name:"Pita Kuzguncuk",pop:647,color:"#C97AF7"}]},
+  {pt:6,lat:41.035046,lon:29.030475,pop:1946,photoCount:94,reviewCount:1946,color:"#C97AF7",label:"Café & Coffee",funcs:["Café","Food","Health","Lodging"],landmarks:[{name:"GALETTE KUZGUNCUK",pop:386,color:"#C97AF7"},{name:"Bu & Bu Dondurma",pop:352,color:"#FF9800"}]},
+  {pt:7,lat:41.034876,lon:29.030642,pop:464,photoCount:38,reviewCount:464,color:"#C97AF7",label:"Café & Coffee",funcs:["Café & Coffee","Food","Retail"],landmarks:[{name:"Le Cafe Bleu",pop:230,color:"#C97AF7"},{name:"Bastet Coffee",pop:152,color:"#C97AF7"}]},
+  {pt:8,lat:41.034498,lon:29.030906,pop:1977,photoCount:131,reviewCount:1977,color:"#C97AF7",label:"Café & Coffee",funcs:["Café","Food","Religious"],landmarks:[{name:"Hausbrandt",pop:901,color:"#C97AF7"},{name:"Chocolatier Aziz Bey",pop:520,color:"#FF9800"},{name:"Agios Panteleimonas Church",pop:121,color:"#F74FA0"}]},
+  {pt:9,lat:41.034069,lon:29.031002,pop:811,photoCount:55,reviewCount:811,color:"#C97AF7",label:"Café & Coffee",funcs:["Café & Coffee","Food"],landmarks:[{name:"Bay Manti & Cafe",pop:475,color:"#C97AF7"},{name:"Palanin Yeri Kofte",pop:154,color:"#FF9800"}]},
+  {pt:10,lat:41.033775,lon:29.031215,pop:40,photoCount:8,reviewCount:40,color:"#FF9800",label:"Food & Dining",funcs:["Food","Retail"],landmarks:[{name:"Has Nalburiye",pop:13,color:"#4FC97A"}]},
+  {pt:11,lat:41.033684,lon:29.031502,pop:838,photoCount:44,reviewCount:838,color:"#FF9800",label:"Food & Dining",funcs:["Food","Retail","Health"],landmarks:[{name:"Cafe 2 Pizza & Burger",pop:575,color:"#FF9800"},{name:"Ahsap Evler",pop:211,color:"#9B9B9B"}]},
+  {pt:12,lat:41.033348,lon:29.031637,pop:1106,photoCount:72,reviewCount:1106,color:"#C97AF7",label:"Café & Coffee",funcs:["Café","Food","Retail","Services"],landmarks:[{name:"Vanilin Chocolate",pop:714,color:"#FF9800"},{name:"Kuzguncuk Begonvil Cafe",pop:254,color:"#C97AF7"},{name:"Ivy Cafe",pop:80,color:"#C97AF7"}]},
+  {pt:13,lat:41.033148,lon:29.031909,pop:304,photoCount:19,reviewCount:304,color:"#C97AF7",label:"Café & Coffee",funcs:["Café","Food","Religious"],landmarks:[{name:"Susam's Coffee",pop:156,color:"#C97AF7"},{name:"Bizz Kafe",pop:117,color:"#C97AF7"},{name:"Beth Nissim Synagogue",pop:2,color:"#F74FA0"}]},
+  {pt:14,lat:41.032881,lon:29.032076,pop:150,photoCount:11,reviewCount:150,color:"#FF9800",label:"Food & Dining",funcs:["Food","Retail","Park"],landmarks:[{name:"Newali Meze",pop:52,color:"#FF9800"}]},
+  {pt:15,lat:41.032596,lon:29.032181,pop:20,photoCount:3,reviewCount:20,color:"#8CB5EF",label:"Health & Wellness",funcs:["Health","Food","Art"],landmarks:[{name:"Bordo Gida",pop:14,color:"#FF9800"},{name:"Rengin Ritmi Resim",pop:5,color:"#F7C84F"},{name:"Psk. Zeynep Cengiz",pop:0,color:"#8CB5EF"}]}
+];
+
+var DENSITY_MAX=11558;
+var PHOTO_MAX=892;
+var REVIEW_MAX=11558;
+var circlePhotoMode=false,circleReviewMode=false,circlesFacadeMode=false;
+var PT_T=[0.089,0.090,0.138,0.219,0.294,0.373,0.422,0.521,0.616,0.694,0.737,0.817,0.881,0.949,1.000];
+var STREET_START={lat:41.036434,lon:29.029397};
+var STREET_END={lat:41.032691,lon:29.032221};
+
+var LANDMARKS=[
+  {name:"Kuzguncuk Mosque",lat:41.036914,lon:29.030535,type:"mosque",color:"#F74FA0"},
+  {name:"Agios Panteleimonas",lat:41.034609,lon:29.030544,type:"church",color:"#F74FA0"},
+  {name:"Beth Nissim Synagogue",lat:41.032981,lon:29.031447,type:"synagogue",color:"#64B4FF"},
+  {name:"Kuzguncuk Evleri",lat:41.035618,lon:29.030024,type:"heritage",color:"#E8A84F"},
+  {name:"Kuzguncuk Bostani",lat:41.034641,lon:29.031470,type:"park",color:"#4FC97A"},
+  {name:"Kuzguncuk Iskele",lat:41.036478,lon:29.029381,type:"transit",color:"#8CB5EF"}
+];
+
+
+var TOP_COLORFUL=[
+  {lon:29.031752,lat:41.033284,colors:["#660000","#FF9900","#741B47","#274E13","#F9CB9C"],rank:1},
+  {lon:29.029398,lat:41.036435,colors:["#073763","#596472","#783F04","#B6D7A8","#660000"],rank:2},
+  {lon:29.030802,lat:41.034533,colors:["#8E8374","#CC4125","#274E13","#A61C00"],rank:3}
+];
+
+var SOCIAL_PLACES=[
+  {name:"PÜRUZE",lat:41.035350,lon:29.030267,type:"cafe",color:"#C97AF7"},
+  {name:"Hausbrandt",lat:41.034498,lon:29.030906,type:"cafe",color:"#C97AF7"},
+  {name:"Le Cafe Bleu",lat:41.034876,lon:29.030642,type:"cafe",color:"#C97AF7"},
+  {name:"Bay Mantı & Cafe",lat:41.034069,lon:29.031002,type:"cafe",color:"#C97AF7"},
+  {name:"Begonvil Cafe",lat:41.033348,lon:29.031650,type:"cafe",color:"#C97AF7"},
+  {name:"Susam Coffee",lat:41.033148,lon:29.031909,type:"cafe",color:"#C97AF7"},
+  {name:"Toprak Kahve",lat:41.035046,lon:29.030475,type:"cafe",color:"#C97AF7"},
+  {name:"Metet Közde Döner",lat:41.036417,lon:29.029485,type:"restaurant",color:"#FF9800"},
+  {name:"Ekmek Teknesi",lat:41.035923,lon:29.029798,type:"restaurant",color:"#FF9800"},
+  {name:"Pastafarian",lat:41.035800,lon:29.029720,type:"restaurant",color:"#FF9800"},
+  {name:"Newali Meze",lat:41.032881,lon:29.032076,type:"restaurant",color:"#FF9800"},
+  {name:"Nail Kitabevi",lat:41.035300,lon:29.030380,type:"book",color:"#4FC97A"},
+  {name:"Mona Art Gallery",lat:41.035150,lon:29.030450,type:"art",color:"#F7C84F"},
+  {name:"Kuzguncuk Bostani",lat:41.034641,lon:29.031470,type:"park",color:"#4FC97A"},
+  {name:"Kuzguncuk Park",lat:41.032289,lon:29.032418,type:"park",color:"#4FC97A"}
+];
+
+
+var SCENES=[
+  {num:"01",title:"Population Density",badge:"3D · Pedestrian",
+   desc:"Pedestrian density along İcadiye Caddesi, modelled from Google Places review counts. Circle size reflects footfall volume per 50m scan zone. Walking figures are scaled to volume and coloured by dominant urban function. Hover a zone to see its breakdown.",
+   cam:{center:[29.0304,41.0349],zoom:15.8,pitch:55,bearing:20},
+   dots:false,peds:true,circles:true,lmk:false,social:false,icons:false,focus:false,multiColor:false,lpanel:'lp3'},
+  {num:"02",title:"Density + Landmarks",badge:"3D · Icons",
+   desc:"Three faiths share one street. Kuzguncuk's mosque, Greek Orthodox church and synagogue stand within metres of each other — a spatial coexistence unique in contemporary Istanbul. Historic timber houses, a community garden and the Bosphorus ferry pier complete the landmark fabric.",
+   cam:{center:[29.0304,41.0349],zoom:15.8,pitch:55,bearing:20},
+   dots:false,peds:true,circles:true,lmk:true,social:false,icons:false,focus:false,multiColor:false,lpanel:'lp2'},
+  {num:"03",title:"Density + Functions",badge:"3D · Social",
+   desc:"Beyond its landmarks, İcadiye Caddesi functions as one of Istanbul's most layered social streets — independent cafés, a neighbourhood bookshop, restaurants and art galleries create a dense human geography along its 380-metre spine.",
+   cam:{center:[29.0304,41.0349],zoom:15.8,pitch:55,bearing:20},
+   dots:false,peds:true,circles:true,lmk:false,social:true,icons:false,focus:false,multiColor:false,lpanel:'lp-social'},
+  {num:"04",title:"Facade Colors",badge:"3D · North",
+   desc:"Facade pigments extracted from 76 geo-tagged Google Street View images using KMeans clustering. Each dot cluster represents real colours recorded on building surfaces at street level along İcadiye Caddesi.",
+   cam:{center:[29.0304,41.0349],zoom:15.5,pitch:52,bearing:20},
+   dots:true,peds:false,circles:false,lmk:false,social:false,icons:false,focus:false,multiColor:false,lpanel:'lp-facade'},
+  {num:"05",title:"Color × Density",badge:"3D · Overlay",
+   desc:"Facade colour and pedestrian density read together. Each density ring is painted in that zone's dominant facade colour — where warm terracottas and navies cluster with high footfall, and where muted greens and greys align with quieter zones. The colour of the ring IS the colour of the building.",
+   cam:{center:[29.0304,41.0349],zoom:15.8,pitch:52,bearing:20},
+   dots:true,peds:false,circles:true,lmk:false,social:false,icons:false,focus:false,multiColor:false,lpanel:null,facadeRings:false},
+  {num:"06",title:"Most Active Zone",badge:"3D · Focus",
+   desc:"The most active node on İcadiye by population score — the sum of Google Places review counts for all businesses within each 50m scan zone. Scan Point 1 (waterfront cluster) scores 11,558.",
+   cam:{center:[29.0293,41.0364],zoom:17.0,pitch:58,bearing:20},
+   dots:true,peds:false,circles:false,lmk:false,social:false,icons:false,
+   focus:true,focusLon:29.029485,focusLat:41.036417,focusR:0.0014,
+   popStr:"11,558 popularity score",locStr:"Most active zone · Scan Point 1",multiColor:false,colorFocusOnly:true,lpanel:'lp5'},
+  {num:"07",title:"Least Active Zone",badge:"3D · Focus",
+   desc:"Scan Point 15 scores only 20 — the lowest on the street, compared to 11,558 at the waterfront.",
+   cam:{center:[29.0322,41.0326],zoom:17.5,pitch:52,bearing:0},
+   dots:true,peds:false,circles:false,lmk:false,social:false,icons:false,
+   focus:true,focusLon:29.032181,focusLat:41.032596,focusR:0.0006,
+   focusColors:["#D9EAD3","#CFE2F3","#FFF2CC","#B6D7A8","#E6B8AF","#F9CB9C","#8D9394"],
+   popStr:"pop score: 20",locStr:"Smallest density ring · pt 15",multiColor:false,colorFocusOnly:true,lpanel:'lp8'},
+  {num:"08",title:"Most Colorful Zone",badge:"3D · Focus",
+   desc:"The most chromatically diverse facade cluster — five distinct hues on a single building surface on İcadiye Caddesi 2. Urban functions at this location are shown in the left legend.",
+   cam:{center:[29.0315,41.0335],zoom:16.8,pitch:58,bearing:20},
+   dots:true,peds:false,circles:false,lmk:false,social:false,icons:true,
+   focus:true,focusLon:29.031752,focusLat:41.033284,focusR:0.0016,
+   popStr:null,locStr:null,multiColor:true,colorFocusOnly:true,lpanel:'lp7'},
+  {num:"09",title:"Least Colorful Zone",badge:"3D · Focus",
+   desc:"Scan Point 15 at the street's far end. Sage greens, cool greys and pale blues dominate — a muted palette that aligns with the area's quieter urban character.",
+   cam:{center:[29.0322,41.0326],zoom:17.5,pitch:52,bearing:0},
+   dots:true,peds:false,circles:false,lmk:false,social:false,icons:true,
+   focus:true,focusLon:29.032181,focusLat:41.032596,focusR:0.0006,
+   focusColors:["#D9EAD3","#CFE2F3","#FFF2CC","#B6D7A8","#E6B8AF","#F9CB9C","#8D9394"],
+   popStr:null,locStr:null,multiColor:false,colorFocusOnly:true,lpanel:'lp8'},
+  {num:"10",title:"Visitor Voices",badge:"Reviews · Icadiye",
+   desc:"Real visitor reviews of İcadiye Caddesi and Kuzguncuk Evleri, sourced from Google Places. Colour-related words are highlighted. Walk through the street as others have described it.",
+   cam:{center:[29.0304,41.0349],zoom:15.5,pitch:52,bearing:20},
+   dots:false,peds:false,circles:false,lmk:false,social:false,icons:false,
+   focus:false,multiColor:false,lpanel:null,reviews:true}
+];
+var currentScene=0,transitioning=false,mapLoaded=false,hoveredPt=null;
+var focusMode=false,focusLon=0,focusLat=0,focusR=0.001,focusPopStr=null,focusLocStr=null,multiColorMode=false,focusColorOverride=null,colorFocusOnly=false;
+
+var map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/dark',center:[29.0304,41.0349],zoom:15.5,pitch:52,bearing:20,antialias:true,preserveDrawingBuffer:true,maxBounds:[[29.024,41.028],[29.038,41.042]]});
+function project(lon,lat){var p=map.project([lon,lat]);return[p.x,p.y];}
+
+// DOTS CANVAS
+var dc=document.getElementById('dc'),dctx=dc.getContext('2d');
+function resizeDC(){dc.width=window.innerWidth;dc.height=window.innerHeight;}
+resizeDC();
+window.addEventListener('resize',function(){resizeDC();resizePC();resizeCC();resizeIC();drawDots();initSplash();});
+
+// DOT HOVER — hex tooltip on facade color dots
+dc.style.pointerEvents='auto';
+dc.addEventListener('mousemove',function(e){
+  if(!mapLoaded)return;
+  var zoom=map.getZoom(),spread=Math.max(10,(zoom-12.5)*18);
+  var best=null,bestD=9999;
+  FACADE_DATA.forEach(function(p,pi){
+    var pos=project(p.lon,p.lat),cx=pos[0],cy=pos[1];
+    dotSeed[pi].forEach(function(s){
+      var x=cx+Math.cos(s.angle)*s.dist*spread,y=cy+Math.sin(s.angle)*s.dist*spread;
+      var d=Math.hypot(e.clientX-x,e.clientY-y);
+      if(d<8&&d<bestD){bestD=d;best={hex:(p.colors[s.ci]||p.colors[0]),x:e.clientX,y:e.clientY};}
+    });
+  });
+  var tip=document.getElementById('dot-tip');
+  if(best&&tip){
+    tip.style.left=(best.x+14)+'px';tip.style.top=(best.y-22)+'px';
+    tip.textContent=best.hex;tip.style.display='block';
+    tip.style.background=best.hex;
+    var h=best.hex.replace('#','');var rv=parseInt(h.slice(0,2),16),gv=parseInt(h.slice(2,4),16),bv=parseInt(h.slice(4,6),16);
+    tip.style.color=(0.299*rv+0.587*gv+0.114*bv)>140?'rgba(0,0,0,0.85)':'rgba(255,255,255,0.95)';
+    dc.style.cursor='crosshair';
+  } else if(tip){tip.style.display='none';dc.style.cursor='';}
+});
+dc.addEventListener('mouseleave',function(){var tip=document.getElementById('dot-tip');if(tip)tip.style.display='none';dc.style.cursor='';});
+var dotSeed=FACADE_DATA.map(function(p){var n=22+p.colors.length*5;return Array.from({length:n},function(){return{angle:Math.random()*Math.PI*2,dist:Math.random(),r:1.8+Math.random()*4.2,ci:Math.floor(Math.random()*p.colors.length)};});});
+function toGray(hex){var h=hex.replace('#','');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);var l=Math.round(0.299*r+0.587*g+0.114*b);var hx=l.toString(16).padStart(2,'0');return '#'+hx+hx+hx;}
+
+function drawDots(){
+  dctx.clearRect(0,0,dc.width,dc.height);if(!mapLoaded)return;
+  var zoom=map.getZoom(),spread=Math.max(10,(zoom-12.5)*18),alpha=Math.min(1,(zoom-13)*0.9);
+  FACADE_DATA.forEach(function(p,pi){
+    var pos=project(p.lon,p.lat),cx=pos[0],cy=pos[1];
+    if(cx<-100||cy<-100||cx>dc.width+100||cy>dc.height+100)return;
+    var inFocus;
+    if(!focusMode){inFocus=true;}
+    else if(multiColorMode){inFocus=TOP_COLORFUL.some(function(tc){return Math.abs(p.lon-tc.lon)<0.0009&&Math.abs(p.lat-tc.lat)<0.0009;});}
+    else{inFocus=(Math.abs(p.lon-focusLon)<focusR&&Math.abs(p.lat-focusLat)<focusR);}
+    var a=alpha;
+    dotSeed[pi].forEach(function(s){
+      var x=cx+Math.cos(s.angle)*s.dist*spread,y=cy+Math.sin(s.angle)*s.dist*spread;
+      var col=(colorFocusOnly)?'#555555':(p.colors[s.ci]||p.colors[0]);
+      var fa=(colorFocusOnly)?0.18:a;
+      var r=(colorFocusOnly)?s.r*1.35:s.r;
+      dctx.beginPath();dctx.arc(x,y,r,0,Math.PI*2);
+      dctx.fillStyle=col+Math.round(fa*200).toString(16).padStart(2,'0');dctx.fill();
+      if(colorFocusOnly){
+        dctx.strokeStyle='rgba(180,180,180,0.12)';dctx.lineWidth=0.7;dctx.stroke();
+      }
+    });
+    dctx.beginPath();dctx.arc(cx,cy,2.5,0,Math.PI*2);
+    dctx.fillStyle=(colorFocusOnly)?'#888888'+'55':(p.colors[0]||'#fff')+'dd';dctx.fill();
+  });
+  if(focusMode){
+    var allCols;
+    if(focusColorOverride){
+      allCols=focusColorOverride;
+    } else {
+      allCols=[];
+      FACADE_DATA.forEach(function(p){
+        if(Math.abs(p.lon-focusLon)<focusR*1.5&&Math.abs(p.lat-focusLat)<focusR*1.5)
+          allCols=allCols.concat(p.colors);
+      });
+    }
+    drawFocusRing(focusLon,focusLat,allCols,focusPopStr,focusLocStr);
+    if(multiColorMode){TOP_COLORFUL.forEach(function(tc){
+      var pos=project(tc.lon,tc.lat),cx=pos[0],cy=pos[1];
+      dctx.beginPath();dctx.arc(cx,cy,20,0,Math.PI*2);dctx.strokeStyle='rgba(255,255,255,0.5)';dctx.lineWidth=1.2;dctx.setLineDash([3,3]);dctx.stroke();dctx.setLineDash([]);
+      dctx.save();dctx.font='bold 8px IBM Plex Mono,monospace';dctx.fillStyle='rgba(7,7,15,0.88)';dctx.beginPath();dctx.arc(cx,cy-24,9,0,Math.PI*2);dctx.fill();dctx.strokeStyle='rgba(255,255,255,0.35)';dctx.lineWidth=1;dctx.stroke();dctx.fillStyle='rgba(255,255,255,0.9)';dctx.textAlign='center';dctx.textBaseline='middle';dctx.fillText('#'+tc.rank,cx,cy-24);dctx.restore();
+    });}
+  }
+}
+function drawFocusRing(lon,lat,colors,popStr,locStr){
+  var pos=project(lon,lat),cx=pos[0],cy=pos[1],R=62;
+  var g=dctx.createRadialGradient(cx,cy,R*0.4,cx,cy,R*2.5);g.addColorStop(0,'rgba(255,255,255,0.1)');g.addColorStop(1,'transparent');
+  dctx.beginPath();dctx.arc(cx,cy,R*2.5,0,Math.PI*2);dctx.fillStyle=g;dctx.fill();
+  dctx.beginPath();dctx.arc(cx,cy,R+5,0,Math.PI*2);dctx.strokeStyle='rgba(255,255,255,0.15)';dctx.lineWidth=7;dctx.stroke();
+  dctx.beginPath();dctx.arc(cx,cy,R,0,Math.PI*2);dctx.strokeStyle='rgba(255,255,255,0.88)';dctx.lineWidth=2;dctx.setLineDash([6,4]);dctx.stroke();dctx.setLineDash([]);
+  var uniq=[...new Set(colors)].filter(function(c){
+    var h=c.replace('#','');
+    var r=parseInt(h.slice(0,2),16),gv=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+    return !(r>245&&gv>240&&b>215);
+  }).slice(0,7);
+  if(uniq.length>0){var a0=-Math.PI*0.85,a1=-Math.PI*0.15;uniq.forEach(function(col,ci){var angle=a0+(ci/Math.max(uniq.length-1,1))*(a1-a0);var sx=cx+Math.cos(angle)*(R+20),sy=cy+Math.sin(angle)*(R+20);dctx.beginPath();dctx.moveTo(cx+Math.cos(angle)*R,cy+Math.sin(angle)*R);dctx.lineTo(sx,sy);dctx.strokeStyle=col+'88';dctx.lineWidth=1;dctx.stroke();dctx.beginPath();dctx.arc(sx,sy,6,0,Math.PI*2);dctx.fillStyle=col;dctx.fill();dctx.strokeStyle='rgba(255,255,255,0.3)';dctx.lineWidth=1;dctx.stroke();});}
+  if(popStr){dctx.save();dctx.font='bold 11px IBM Plex Mono,monospace';dctx.fillStyle='rgba(255,255,255,0.88)';dctx.textAlign='center';dctx.textBaseline='top';dctx.fillText(popStr,cx,cy+R+12);dctx.font='8px IBM Plex Mono,monospace';dctx.fillStyle='rgba(255,255,255,0.5)';dctx.fillText(locStr||'',cx,cy+R+26);dctx.restore();}
+}
+function scheduleDots(){requestAnimationFrame(drawDots);}
+map.on('move',scheduleDots);map.on('zoom',scheduleDots);map.on('rotate',scheduleDots);map.on('pitch',scheduleDots);
+
+// ICON CANVAS (landmarks + cafes + func icons)
+var ic=document.getElementById('ic'),ictx=ic.getContext('2d');
+function resizeIC(){ic.width=window.innerWidth;ic.height=window.innerHeight;}
+resizeIC();
+var lmkActive=false,socialActive=false,funcIconsId=null;
+
+function drawIcon(ctx,cx,cy,type,name){
+  var S=17;
+  // Black filled circle
+  ctx.beginPath();ctx.arc(cx,cy,S,0,Math.PI*2);
+  ctx.fillStyle='rgba(8,8,18,0.92)';ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1;ctx.stroke();
+  // White icon
+  ctx.save();ctx.strokeStyle='#fff';ctx.fillStyle='#fff';ctx.lineWidth=1.6;ctx.lineCap='round';ctx.lineJoin='round';
+  var S2=S*0.52; // icon drawing scale
+  if(type==='mosque'){
+    // dome + minaret
+    ctx.beginPath();ctx.arc(cx,cy+1,S2*1.1,Math.PI,0,false);ctx.lineTo(cx+S2*1.1,cy+1);ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fill();ctx.strokeStyle='#fff';ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-S2*.1,cy-S2*1.05);ctx.lineTo(cx,cy-S2*1.5);ctx.lineTo(cx+S2*.1,cy-S2*1.05);ctx.stroke();
+  }
+  else if(type==='church'){
+    // cross
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx,cy-S2*1.2);ctx.lineTo(cx,cy+S2*1.2);ctx.moveTo(cx-S2*.75,cy-S2*.4);ctx.lineTo(cx+S2*.75,cy-S2*.4);ctx.stroke();
+  }
+  else if(type==='synagogue'){
+    // star of david — two triangles
+    ctx.lineWidth=1.4;
+    var r=S2*1.0;
+    for(var i=0;i<2;i++){ctx.beginPath();for(var j=0;j<3;j++){var a=i*Math.PI/3+j*2*Math.PI/3+(i===0?-Math.PI/6:Math.PI/6);if(j===0)ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a));else ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}ctx.closePath();ctx.stroke();}
+  }
+  else if(type==='heritage'){
+    // simple house silhouette
+    ctx.beginPath();ctx.moveTo(cx-S2,cy+S2);ctx.lineTo(cx-S2,cy);ctx.lineTo(cx,cy-S2);ctx.lineTo(cx+S2,cy);ctx.lineTo(cx+S2,cy+S2);ctx.closePath();ctx.stroke();
+  }
+  else if(type==='park'){
+    // tree
+    ctx.beginPath();ctx.arc(cx,cy-S2*.3,S2*.9,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy+S2*.6);ctx.lineTo(cx,cy+S2*1.2);ctx.lineWidth=2;ctx.stroke();
+  }
+  else if(type==='transit'){
+    // anchor / ferry
+    ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.arc(cx,cy-S2*.5,S2*.5,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy-S2*.5);ctx.lineTo(cx,cy+S2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-S2*.8,cy+S2*.3);ctx.arc(cx,cy+S2*.3,S2*.8,Math.PI,0,false);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-S2*.8,cy+S2*.3);ctx.arc(cx-S2*.8,cy+S2*.3,S2*.18,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx+S2*.8,cy+S2*.3,S2*.18,0,Math.PI*2);ctx.fill();
+  }
+  else if(type==='restaurant'){
+    // fork + knife
+    ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.moveTo(cx-S2*.55,cy-S2);ctx.lineTo(cx-S2*.55,cy+S2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+S2*.55,cy-S2);ctx.lineTo(cx+S2*.55,cy+S2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-S2*.55,cy-S2*.2);ctx.arc(cx,cy-S2*.2,S2*.55,Math.PI,0,false);ctx.stroke();
+  }
+  else if(type==='book'){
+    ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.rect(cx-S2*.9,cy-S2,S2*1.8,S2*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy-S2);ctx.lineTo(cx,cy+S2);ctx.stroke();
+  }
+  else if(type==='art'){
+    // palette circle + dot
+    ctx.beginPath();ctx.arc(cx,cy,S2,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx-S2*.35,cy-S2*.15,S2*.28,0,Math.PI*2);ctx.fill();
+  }
+  else if(type==='cafe'){
+    // cup
+    ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.moveTo(cx-S2*.7,cy-S2*.3);ctx.lineTo(cx-S2*.85,cy+S2*.7);ctx.lineTo(cx+S2*.85,cy+S2*.7);ctx.lineTo(cx+S2*.7,cy-S2*.3);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+S2*.7,cy+S2*.1);ctx.quadraticCurveTo(cx+S2*1.2,cy+S2*.1,cx+S2*1.2,cy+S2*.5);ctx.quadraticCurveTo(cx+S2*1.2,cy+S2*.7,cx+S2*.85,cy+S2*.7);ctx.stroke();
+    ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(cx-S2*.1,cy-S2*.45);ctx.quadraticCurveTo(cx-S2*.3,cy-S2*.75,cx-S2*.1,cy-S2*1.05);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+S2*.25,cy-S2*.45);ctx.quadraticCurveTo(cx+S2*.45,cy-S2*.75,cx+S2*.25,cy-S2*1.05);ctx.stroke();
+  }
+  ctx.restore();
+  // Label
+  var tw=Math.max(name.length*4.0+10,38);
+  ctx.fillStyle='rgba(8,8,18,0.85)';ctx.fillRect(cx-tw/2,cy+S+3,tw,12);
+  ctx.font='6.5px IBM Plex Mono,monospace';ctx.fillStyle='rgba(255,255,255,0.88)';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(name,cx,cy+S+4.5);
+}
+
+function drawFuncIcon(ctx,cx,cy,funcName,color,label){
+  var S=17;
+  // Black circle — same as drawIcon
+  ctx.beginPath();ctx.arc(cx,cy,S,0,Math.PI*2);
+  ctx.fillStyle='rgba(8,8,18,0.92)';ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1;ctx.stroke();
+  // White icon
+  ctx.save();ctx.strokeStyle='#fff';ctx.fillStyle='#fff';ctx.lineWidth=1.6;ctx.lineCap='round';ctx.lineJoin='round';
+  var S2=S*0.52;
+  if(funcName==='cafe'){
+    ctx.beginPath();ctx.moveTo(cx-S2*.7,cy-S2*.3);ctx.lineTo(cx-S2*.85,cy+S2*.7);ctx.lineTo(cx+S2*.85,cy+S2*.7);ctx.lineTo(cx+S2*.7,cy-S2*.3);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+S2*.7,cy+S2*.1);ctx.quadraticCurveTo(cx+S2*1.2,cy+S2*.1,cx+S2*1.2,cy+S2*.5);ctx.quadraticCurveTo(cx+S2*1.2,cy+S2*.7,cx+S2*.85,cy+S2*.7);ctx.stroke();
+    ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx-S2*.1,cy-S2*.45);ctx.quadraticCurveTo(cx-S2*.3,cy-S2*.75,cx-S2*.1,cy-S2*1.05);ctx.stroke();
+  }
+  else if(funcName==='food'){
+    ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.moveTo(cx-S2*.55,cy-S2);ctx.lineTo(cx-S2*.55,cy+S2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+S2*.55,cy-S2);ctx.lineTo(cx+S2*.55,cy+S2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-S2*.55,cy-S2*.2);ctx.arc(cx,cy-S2*.2,S2*.55,Math.PI,0,false);ctx.stroke();
+  }
+  else if(funcName==='art'){
+    ctx.beginPath();ctx.arc(cx,cy,S2,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx-S2*.35,cy-S2*.15,S2*.28,0,Math.PI*2);ctx.fill();
+  }
+  else if(funcName==='shop'){
+    ctx.beginPath();ctx.moveTo(cx-S2*.8,cy+S2*.7);ctx.lineTo(cx-S2*.5,cy-S2*.3);ctx.lineTo(cx+S2*.5,cy-S2*.3);ctx.lineTo(cx+S2*.8,cy+S2*.7);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy-S2*.6,S2*.35,0,Math.PI*2);ctx.stroke();
+  }
+  else if(funcName==='health'){
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx,cy-S2*1.2);ctx.lineTo(cx,cy+S2*1.2);ctx.moveTo(cx-S2*1.2,cy);ctx.lineTo(cx+S2*1.2,cy);ctx.stroke();
+  }
+  else if(funcName==='service'){
+    ctx.beginPath();ctx.arc(cx,cy,S2*.7,0,Math.PI*2);ctx.stroke();
+    for(var i=0;i<6;i++){var a=i*Math.PI/3;ctx.beginPath();ctx.moveTo(cx+S2*.7*Math.cos(a),cy+S2*.7*Math.sin(a));ctx.lineTo(cx+S2*1.1*Math.cos(a),cy+S2*1.1*Math.sin(a));ctx.stroke();}
+  }
+  ctx.restore();
+  // Connector line to focus point
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(focusPos[0],focusPos[1]);ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.stroke();ctx.setLineDash([]);
+  // Label
+  var tw=Math.max(label.length*4.0+10,38);
+  ctx.fillStyle='rgba(8,8,18,0.85)';ctx.fillRect(cx-tw/2,cy+S+3,tw,12);
+  ctx.font='6.5px IBM Plex Mono,monospace';ctx.fillStyle='rgba(255,255,255,0.88)';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(label,cx,cy+S+4.5);
+}
+
+var FUNC_CONFIG={
+  lp7:[{funcName:'cafe',color:'#C97AF7',label:'Café',ox:-90,oy:-80},{funcName:'food',color:'#FF9800',label:'Food',ox:90,oy:-80},{funcName:'shop',color:'#4FC97A',label:'Retail',ox:0,oy:-110},{funcName:'service',color:'#9B9B9B',label:'Services',ox:110,oy:20}],
+  lp8:[{funcName:'health',color:'#8CB5EF',label:'Wellness',ox:-90,oy:-70},{funcName:'food',color:'#FF9800',label:'Grocery',ox:90,oy:-70},{funcName:'art',color:'#F7C84F',label:'Art',ox:0,oy:-110}]
+};
+var focusPos=[0,0];
+var lmkActive=false,socialActive=false,funcIconsId=null;
+
+function updateIconCanvas(){
+  ictx.clearRect(0,0,ic.width,ic.height);
+  if(lmkActive){LANDMARKS.forEach(function(lm){var pos=project(lm.lon,lm.lat),cx=pos[0],cy=pos[1];if(cx<-80||cy<-80||cx>ic.width+80||cy>ic.height+80)return;drawIcon(ictx,cx,cy,lm.type,lm.name);});}
+  if(socialActive){SOCIAL_PLACES.forEach(function(sp){var pos=project(sp.lon,sp.lat),cx=pos[0],cy=pos[1];if(cx<-80||cy<-80||cx>ic.width+80||cy>ic.height+80)return;drawIcon(ictx,cx,cy,sp.type,sp.name);});}
+  if(funcIconsId&&FUNC_CONFIG[funcIconsId]){
+    var fp=project(focusLon,focusLat);focusPos[0]=fp[0];focusPos[1]=fp[1];
+    FUNC_CONFIG[funcIconsId].forEach(function(fi){drawFuncIcon(ictx,fp[0]+fi.ox,fp[1]+fi.oy,fi.funcName,fi.color,fi.label);});
+  }
+}
+map.on('move',function(){if(lmkActive||funcIconsId)updateIconCanvas();});
+map.on('zoom',function(){if(lmkActive||funcIconsId)updateIconCanvas();});
+map.on('rotate',function(){if(lmkActive||funcIconsId)updateIconCanvas();});
+
+// PEDESTRIAN CANVAS
+var pc=document.getElementById('pc'),pctx=pc.getContext('2d');
+function resizePC(){pc.width=window.innerWidth;pc.height=window.innerHeight;}
+resizePC();
+function getStreetVec(){var s=project(STREET_START.lon,STREET_START.lat),e=project(STREET_END.lon,STREET_END.lat);var len=Math.hypot(e[0]-s[0],e[1]-s[1]);return{sx:s[0],sy:s[1],dx:(e[0]-s[0])/len,dy:(e[1]-s[1])/len,len:len};}
+var walkers=[],pedActive=false,pedAnimId=null;
+function buildWalkers(){
+  var v=getStreetVec(),perpx=-v.dy,perpy=v.dx;walkers=[];
+  DENSITY_DATA.forEach(function(pt,idx){
+    var ratio=Math.log1p(pt.pop)/Math.log1p(DENSITY_MAX),count=Math.max(1,Math.round(Math.pow(ratio,0.6)*30));
+    var pool=[];pt.landmarks.forEach(function(lm){var w=Math.max(1,Math.round(lm.pop/100));for(var k=0;k<Math.min(w,8);k++)pool.push(lm.color);});
+    if(!pool.length)pool.push(pt.color);var tC=PT_T[idx];
+    for(var i=0;i<count;i++){var tH=Math.max(0,Math.min(1,tC+(Math.random()-0.5)*0.08));
+      walkers.push({color:pool[Math.floor(Math.random()*pool.length)],ratio:ratio,tHome:tH,tRange:0.018+Math.random()*0.02,t:tH+(Math.random()-0.5)*0.02,speed:(0.00006+Math.random()*0.00006)*(0.7+ratio*0.5),dir:Math.random()>0.5?1:-1,lat:Math.random()*12-6,bobPhase:Math.random()*Math.PI*2,bobSpeed:0.055+Math.random()*0.035,size:6+ratio*8,opacity:0.6+ratio*0.4,idx:idx});}
+  });
+}
+function drawPerson(x,y,sz,color,op,bob){
+  pctx.save();pctx.globalAlpha=op;var s=sz;
+  pctx.beginPath();pctx.ellipse(x+1.5,y+s*.6+2,s*.28,s*.1,0,0,Math.PI*2);pctx.fillStyle='rgba(0,0,0,0.18)';pctx.fill();
+  var ls=Math.sin(bob*2.8)*s*.14;
+  pctx.beginPath();pctx.arc(x-s*.09,y+bob+s*.55+ls,s*.1,0,Math.PI*2);pctx.fillStyle=color+'99';pctx.fill();
+  pctx.beginPath();pctx.arc(x+s*.09,y+bob+s*.55-ls,s*.1,0,Math.PI*2);pctx.fillStyle=color+'99';pctx.fill();
+  pctx.beginPath();pctx.ellipse(x,y+bob+s*.22,s*.21,s*.3,0,0,Math.PI*2);pctx.fillStyle=color;pctx.fill();
+  pctx.beginPath();pctx.arc(x,y+bob-s*.1,s*.19,0,Math.PI*2);pctx.fillStyle=color;pctx.fill();
+  pctx.beginPath();pctx.arc(x-s*.06,y+bob-s*.14,s*.07,0,Math.PI*2);pctx.fillStyle='rgba(255,255,255,0.22)';pctx.fill();
+  pctx.restore();
+}
+function drawLabel(v,idx){
+  var pt=DENSITY_DATA[idx],t=PT_T[idx],cx=v.sx+t*v.dx*v.len,cy=v.sy+t*v.dy*v.len;
+  var lx=cx-v.dy*46,ly=cy+v.dx*46-8,lineH=13,bw=172,bh=(pt.funcs.length+pt.landmarks.length+2)*lineH+18;
+  pctx.save();var bx=lx-bw/2,by=ly-bh,br=3;
+  pctx.beginPath();pctx.moveTo(bx+br,by);pctx.lineTo(bx+bw-br,by);pctx.arcTo(bx+bw,by,bx+bw,by+br,br);pctx.lineTo(bx+bw,by+bh-br);pctx.arcTo(bx+bw,by+bh,bx+bw-br,by+bh,br);pctx.lineTo(bx+br,by+bh);pctx.arcTo(bx,by+bh,bx,by+bh-br,br);pctx.lineTo(bx,by+br);pctx.arcTo(bx,by,bx+br,by,br);pctx.closePath();
+  pctx.fillStyle='rgba(7,7,15,0.93)';pctx.fill();pctx.strokeStyle=pt.color+'55';pctx.lineWidth=1;pctx.stroke();
+  pctx.fillStyle=pt.color;pctx.fillRect(bx,by,bw,2);
+  var ty=by+16;pctx.font='bold 8px IBM Plex Mono,monospace';pctx.fillStyle=pt.color;pctx.textAlign='center';pctx.fillText(pt.label.toUpperCase(),lx,ty);ty+=lineH+2;
+  pt.funcs.forEach(function(f){pctx.font='7px IBM Plex Mono,monospace';pctx.fillStyle='rgba(255,255,255,0.5)';pctx.fillText('· '+f,lx,ty);ty+=lineH-2;});
+  ty+=3;pctx.strokeStyle='rgba(255,255,255,0.07)';pctx.lineWidth=1;pctx.beginPath();pctx.moveTo(bx+8,ty-6);pctx.lineTo(bx+bw-8,ty-6);pctx.stroke();
+  pt.landmarks.forEach(function(lm){pctx.beginPath();pctx.arc(bx+10,ty-3,3,0,Math.PI*2);pctx.fillStyle=lm.color;pctx.fill();var sn=lm.name.length>22?lm.name.slice(0,21)+'…':lm.name;pctx.font='7.5px IBM Plex Mono,monospace';pctx.fillStyle='rgba(255,255,255,0.7)';pctx.textAlign='left';pctx.fillText(sn,bx+18,ty);pctx.fillStyle=lm.color+'44';pctx.fillRect(bx+18,ty+2,Math.round((lm.pop/DENSITY_MAX)*80),2);ty+=lineH;});
+  pctx.beginPath();pctx.moveTo(cx,cy);pctx.lineTo(lx,ly);pctx.strokeStyle=pt.color+'33';pctx.lineWidth=1;pctx.setLineDash([2,3]);pctx.stroke();pctx.setLineDash([]);
+  pctx.textAlign='left';pctx.restore();
+}
+function animatePeds(){
+  if(!pedActive)return;pctx.clearRect(0,0,pc.width,pc.height);
+  var v=getStreetVec(),perpx=-v.dy,perpy=v.dx;
+  var rend=walkers.map(function(w){w.t+=w.speed*w.dir;var mn=w.tHome-w.tRange,mx=w.tHome+w.tRange;if(w.t>mx){w.t=mx;w.dir=-1;}if(w.t<mn){w.t=mn;w.dir=1;}w.bobPhase+=w.bobSpeed;return{w:w,x:v.sx+w.t*v.dx*v.len+w.lat*perpx,y:v.sy+w.t*v.dy*v.len+w.lat*perpy};});
+  rend.sort(function(a,b){return a.y-b.y;});
+  rend.forEach(function(o){drawPerson(o.x,o.y,o.w.size,o.w.color,o.w.opacity,Math.sin(o.w.bobPhase)*1.8);});
+  if(hoveredPt!==null)drawLabel(v,hoveredPt);
+  pedAnimId=requestAnimationFrame(animatePeds);
+}
+function startPeds(){pedActive=true;pc.style.pointerEvents='auto';buildWalkers();animatePeds();}
+function stopPeds(){pedActive=false;pc.style.pointerEvents='none';if(pedAnimId){cancelAnimationFrame(pedAnimId);pedAnimId=null;}pctx.clearRect(0,0,pc.width,pc.height);}
+map.on('move',function(){if(pedActive)buildWalkers();});
+
+// CIRCLES
+var cc=document.getElementById('cc'),cctx=cc.getContext('2d');
+function resizeCC(){cc.width=window.innerWidth;cc.height=window.innerHeight;}
+resizeCC();
+var circleActive=false;
+function drawCircles(){
+  cctx.clearRect(0,0,cc.width,cc.height);if(!circleActive)return;
+  var v=getStreetVec();
+  var isOverlay=(SCENES[currentScene]&&(SCENES[currentScene].title==='Color × Density'));
+  DENSITY_DATA.forEach(function(pt,idx){
+    var val,maxVal,dotColor;
+    if(circlePhotoMode){val=pt.photoCount||0;maxVal=PHOTO_MAX;dotColor='#4f8ef7';}
+    else if(circleReviewMode){val=pt.reviewCount||0;maxVal=REVIEW_MAX;dotColor='#C97AF7';}
+    else{val=pt.pop;maxVal=DENSITY_MAX;dotColor='#ffffff';}
+
+    // Facade rings mode: override with nearest facade dominant colour
+    if(circlesFacadeMode){
+      var closest=null,bestD=9999;
+      FACADE_DATA.forEach(function(fp){
+        var d=Math.hypot(fp.lon-pt.lon,fp.lat-pt.lat);
+        if(d<bestD){bestD=d;closest=fp;}
+      });
+      if(closest&&closest.colors.length)dotColor=closest.colors[0];
+    }
+
+    var ratio=Math.log1p(val)/Math.log1p(maxVal),t=PT_T[idx],cx=v.sx+t*v.dx*v.len,cy=v.sy+t*v.dy*v.len;
+    var baseR=14+ratio*68;
+    var strokeA=(isOverlay?0.5:0.22)+ratio*(isOverlay?0.5:0.38);
+    cctx.beginPath();cctx.arc(cx,cy,baseR,0,Math.PI*2);
+    cctx.strokeStyle=dotColor+Math.round(strokeA*255).toString(16).padStart(2,'0');
+    cctx.lineWidth=(isOverlay?2:1.5)+ratio*2.5;cctx.stroke();
+    cctx.beginPath();cctx.arc(cx,cy,2+ratio*2.5,0,Math.PI*2);
+    cctx.fillStyle=dotColor+Math.round((0.28+ratio*0.4)*255).toString(16).padStart(2,'0');cctx.fill();
+  });
+  if(hoveredPt!==null)drawLabelCC(v,hoveredPt);
+}
+function drawLabelCC(v,idx){
+  var pt=DENSITY_DATA[idx],t=PT_T[idx],cx=v.sx+t*v.dx*v.len,cy=v.sy+t*v.dy*v.len;
+  var lx=cx-v.dy*46,ly=cy+v.dx*46-8,lineH=13,bw=172,bh=(pt.funcs.length+pt.landmarks.length+2)*lineH+18;
+  cctx.save();var bx=lx-bw/2,by=ly-bh,br=3;
+  cctx.beginPath();cctx.moveTo(bx+br,by);cctx.lineTo(bx+bw-br,by);cctx.arcTo(bx+bw,by,bx+bw,by+br,br);cctx.lineTo(bx+bw,by+bh-br);cctx.arcTo(bx+bw,by+bh,bx+bw-br,by+bh,br);cctx.lineTo(bx+br,by+bh);cctx.arcTo(bx,by+bh,bx,by+bh-br,br);cctx.lineTo(bx,by+br);cctx.arcTo(bx,by,bx+br,by,br);cctx.closePath();
+  cctx.fillStyle='rgba(7,7,15,0.93)';cctx.fill();cctx.strokeStyle=pt.color+'55';cctx.lineWidth=1;cctx.stroke();
+  cctx.fillStyle=pt.color;cctx.fillRect(bx,by,bw,2);
+  var ty=by+16;cctx.font='bold 8px IBM Plex Mono,monospace';cctx.fillStyle=pt.color;cctx.textAlign='center';cctx.fillText(pt.label.toUpperCase(),lx,ty);ty+=lineH+2;
+  pt.funcs.forEach(function(f){cctx.font='7px IBM Plex Mono,monospace';cctx.fillStyle='rgba(255,255,255,0.5)';cctx.fillText('· '+f,lx,ty);ty+=lineH-2;});
+  ty+=3;cctx.strokeStyle='rgba(255,255,255,0.07)';cctx.lineWidth=1;cctx.beginPath();cctx.moveTo(bx+8,ty-6);cctx.lineTo(bx+bw-8,ty-6);cctx.stroke();
+  pt.landmarks.forEach(function(lm){cctx.beginPath();cctx.arc(bx+10,ty-3,3,0,Math.PI*2);cctx.fillStyle=lm.color;cctx.fill();var sn=lm.name.length>22?lm.name.slice(0,21)+'…':lm.name;cctx.font='7.5px IBM Plex Mono,monospace';cctx.fillStyle='rgba(255,255,255,0.7)';cctx.textAlign='left';cctx.fillText(sn,bx+18,ty);cctx.fillStyle=lm.color+'44';cctx.fillRect(bx+18,ty+2,Math.round((lm.pop/DENSITY_MAX)*80),2);ty+=lineH;});
+  cctx.beginPath();cctx.moveTo(cx,cy);cctx.lineTo(lx,ly);cctx.strokeStyle=pt.color+'33';cctx.lineWidth=1;cctx.setLineDash([2,3]);cctx.stroke();cctx.setLineDash([]);
+  cctx.textAlign='left';cctx.restore();
+}
+function startCircles(){circleActive=true;cc.classList.add('vis');cc.style.pointerEvents='auto';drawCircles();}
+function stopCircles(){circleActive=false;cc.classList.remove('vis');cc.style.pointerEvents='none';cctx.clearRect(0,0,cc.width,cc.height);hoveredPt=null;}
+map.on('move',function(){if(circleActive)drawCircles();});map.on('zoom',function(){if(circleActive)drawCircles();});map.on('rotate',function(){if(circleActive)drawCircles();});
+
+function updateHover(cx,cy){var v=getStreetVec(),found=null,best=9999;DENSITY_DATA.forEach(function(pt,idx){var t=PT_T[idx],px=v.sx+t*v.dx*v.len,py=v.sy+t*v.dy*v.len;var d=Math.hypot(cx-px,cy-py);if(d<55&&d<best){best=d;found=idx;}});if(found!==hoveredPt){hoveredPt=found;if(circleActive)drawCircles();}}
+pc.addEventListener('mousemove',function(e){if(!pedActive){hoveredPt=null;return;}updateHover(e.clientX,e.clientY);pc.style.cursor=hoveredPt!==null?'pointer':'';});
+pc.addEventListener('mouseleave',function(){hoveredPt=null;if(circleActive)drawCircles();});
+cc.addEventListener('mousemove',function(e){if(!circleActive)return;updateHover(e.clientX,e.clientY);cc.style.cursor=hoveredPt!==null?'pointer':'';});
+cc.addEventListener('mouseleave',function(){hoveredPt=null;drawCircles();});
+
+// BUILDINGS
+function calcH(tags){if(tags.height){var h=parseFloat(tags.height);if(!isNaN(h)&&h>0)return h;}if(tags['building:levels']){var lv=parseFloat(tags['building:levels']);if(!isNaN(lv)&&lv>0)return lv*3.2;}var d={house:8,detached:7,bungalow:4,shed:3,residential:12,apartments:16,commercial:10,retail:6,office:20,hotel:25,church:20,cathedral:30,mosque:18,synagogue:12,school:10,university:15,hospital:18,yes:10};return d[tags.building||'']||10;}
+map.on('load',async function(){
+  mapLoaded=true;var st=document.getElementById('bst');
+  try{var q='[out:json][timeout:25];(way["building"](41.028,29.024,41.042,29.038););out body geom;';var res=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));var data=await res.json();var ways=data.elements.filter(function(e){return e.type==='way'&&e.geometry&&e.geometry.length>2;});var feats=ways.map(function(w){var h=calcH(w.tags||{});var ring=w.geometry.map(function(p){return[p.lon,p.lat];});ring.push(ring[0]);return{type:'Feature',properties:{h:h},geometry:{type:'Polygon',coordinates:[ring]}};});map.addSource('bldg',{type:'geojson',data:{type:'FeatureCollection',features:feats}});map.addLayer({id:'bldg-b',type:'fill-extrusion',source:'bldg',paint:{'fill-extrusion-color':'#1a1a2e','fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':0.97}});map.addLayer({id:'bldg-t',type:'fill-extrusion',source:'bldg',paint:{'fill-extrusion-color':'#252540','fill-extrusion-height':['get','h'],'fill-extrusion-base':['-',['get','h'],0.6],'fill-extrusion-opacity':0.88}});st.textContent=ways.length+' buildings loaded';}catch(e){st.textContent='OSM unavailable';}
+  setTimeout(function(){st.style.opacity='0';setTimeout(function(){st.remove();},600);},2500);
+  dc.classList.add('vis');
+  if(splashStage>=3) applyScene(currentScene);
+  setTimeout(initMiniMap,800);
+});
+
+// SCENE
+function applyScene(idx){
+  var s=SCENES[idx];
+  // Basic UI always works
+  document.getElementById('info-num').textContent=s.num;
+  document.getElementById('info-badge').textContent=s.badge;
+  document.getElementById('slbl').textContent= 'Scene '+(idx+1)+' / 10';
+  document.getElementById('vbdg').textContent=s.badge;
+  var te=document.getElementById('info-title');te.innerHTML='';
+  s.title.split('').forEach(function(ch,ci){var sp=document.createElement('span');if(ch===' '||ch==='·'){sp.innerHTML='&nbsp;';sp.style.display='inline';}else{sp.textContent=ch;sp.style.color=TCOLS[ci%TCOLS.length];sp.style.fontWeight='600';}te.appendChild(sp);});
+  var de=document.getElementById('info-desc');de.innerHTML='';
+  s.desc.split('\n\n').forEach(function(para,pi){if(pi>0){de.appendChild(document.createElement('br'));de.appendChild(document.createElement('br'));}de.appendChild(document.createTextNode(para));});
+
+  focusMode=!!s.focus;multiColorMode=!!s.multiColor;colorFocusOnly=!!s.colorFocusOnly;
+  if(s.focus){focusLon=s.focusLon;focusLat=s.focusLat;focusR=s.focusR||0.001;focusPopStr=s.popStr||null;focusLocStr=s.locStr||null;focusColorOverride=s.focusColors||null;}
+  document.querySelectorAll('.lpanel').forEach(function(el){el.style.display='none';});
+  if(s.lpanel){var lp=document.getElementById(s.lpanel);if(lp)lp.style.display='block';}
+
+  // Map-dependent operations only when map is ready
+  if(mapLoaded){
+    if(s.dots)dc.classList.add('vis');else dc.classList.remove('vis');
+    if(s.peds){pc.classList.add('vis');startPeds();}else{pc.classList.remove('vis');stopPeds();}
+    if(s.circles){circlePhotoMode=!!s.photoMode;circleReviewMode=!!s.reviewMode;circlesFacadeMode=!!s.facadeRings;startCircles();}else{circlePhotoMode=false;circleReviewMode=false;circlesFacadeMode=false;stopCircles();}
+    lmkActive=!!s.lmk;socialActive=!!s.social;
+    funcIconsId=s.icons?s.lpanel:null;
+    if(s.icons||s.lmk||s.social){ic.classList.add('vis');updateIconCanvas();}else{ic.classList.remove('vis');ictx.clearRect(0,0,ic.width,ic.height);}
+    if(s.reviews) showReviews(); else hideReviews();
+    map.easeTo({center:s.cam.center,zoom:s.cam.zoom,pitch:s.cam.pitch,bearing:s.cam.bearing,duration:1300});
+    requestAnimationFrame(drawDots);
+  }
+
+  // Facade panel walkers only on scene 1
+  if(s.lpanel==='lp-facade') setTimeout(function(){
+    startFacadeWalkers();
+    if(!miniMap){initMiniMap();}
+    else{miniMap.resize();setTimeout(function(){if(miniMapLoaded)drawMiniDots();},100);}
+  },200); else stopFacadeWalkers();
+}
+
+function goScene(idx){
+  if(transitioning||idx===currentScene)return;
+  transitioning=true;
+  var ov=document.getElementById('ovl');ov.classList.add('on');
+  var safetyTimer=setTimeout(function(){transitioning=false;ov.classList.remove('on');},1200);
+  setTimeout(function(){
+    try{
+      currentScene=idx;
+      applyScene(idx);
+      document.querySelectorAll('.sbtn').forEach(function(b,i){b.classList.toggle('on',i===idx);});
+    }catch(e){console.error('applyScene error:',e);}
+    ov.classList.remove('on');
+    transitioning=false;
+    clearTimeout(safetyTimer);
+  },350);
+}
+function nextScene(){goScene((currentScene+1)%SCENES.length);}
+function prevScene(){goScene((currentScene-1+SCENES.length)%SCENES.length);}
+document.addEventListener('keydown',function(e){if(splashStage<3)return;if(e.key==='ArrowRight'||e.key==='ArrowDown')nextScene();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevScene();});
+
+// ── REVIEWS PANEL ──────────────────────────────────────────────────
+var REVIEWS=[
+  {stars:5,author:"Majdou Line",source:"Kuzguncuk Evleri",
+   text:"A colorful, clean, beautiful and upscale street, full of colorful houses, giving an atmosphere of simplicity and sophistication at the same time. It is one of the most beautiful neighborhoods in Istanbul and is worth a visit. There are many restaurants, coffee shops, and a hidden garden. A must see in Istanbul."},
+  {stars:5,author:"Niki Esmaeilzadeh",source:"Kuzguncuk Evleri",
+   text:"Kuzguncuk is one of those streets you can fall into again and again and never get tired of. With its colorful houses, peaceful atmosphere, small cafes, and quiet corners, it offers a sense of calm that's rare in Istanbul. I highly recommend every tourist to walk, explore, and take photos here — it's not just a street, it's an experience. I wish I could give it much more than five stars!"},
+  {stars:4,author:"Lydia Chong",source:"Kuzguncuk Evleri",
+   text:"A very chic and lively neighbourhood completely different from the old town. A lot of colourful houses and nice cafe and dessert shops along the street. Also 10-15 min walk uphill to the Bosphorus viewpoint brings a bird's-eye view of the strait."},
+  {stars:5,author:"Betul Veyil Gunhan",source:"Kuzguncuk Iskele",
+   text:"A very sweet place. Along one street there are rainbow-coloured houses and cafes. Perfect for photography. Watch out — a cat might scratch you :-D"},
+  {stars:5,author:"Zfr01",source:"Kuzguncuk Iskele",
+   text:"No visit to Uskudar is complete without seeing Kuzguncuk — its old, colourful houses, hilly streets, a warm crispy simit, then a stroll along the waterfront."},
+  {stars:5,author:"Shasha Omar",source:"Kuzguncuk Evleri",
+   text:"We came when the sun was almost setting. The colourful buildings didn't really pop up in the picture, but it's still beautiful. The alley along the road was full of nice cafes and not packed at all."},
+  {stars:4,author:"Reem Mohamed",source:"Kuzguncuk Evleri",
+   text:"The area is full of cafes and restaurants. We came to see the colored houses — a narrow street of about 10 coloured houses. The surrounding area was full of nice cafes to eat at."},
+  {stars:5,author:"Burak Aynaci",source:"Kuzguncuk Iskele",
+   text:"One of the most beloved historic neighbourhoods on the Asian side of Istanbul. Mosque, church and synagogue stand side by side. Today it is among Istanbul's most cherished districts, with its bay-windowed historic houses and cobbled streets."}
+];
+
+var COLOR_HL=[
+  {re:/\b(colorful|colourful)\b/gi,cls:'hl-colourful'},
+  {re:/\b(colored|coloured)\b/gi,cls:'hl-coloured'},
+  {re:/\b(rainbow-coloured|rainbow-colored|rainbow)\b/gi,cls:'hl-rainbow'},
+  {re:/\b(colors|colours|color|colour)\b/gi,cls:'hl-color'},
+  {re:/\b(vibrant)\b/gi,cls:'hl-vibrant'},
+  {re:/\b(painted)\b/gi,cls:'hl-painted'}
+];
+var CARD_ACC=['#e8a84f','#4f8ef7','#f74fa0','#4fc97a','#c97af7','#f7c84f','#64b4ff','#E8A84F'];
+
+function highlightColors(text){
+  var s=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  COLOR_HL.forEach(function(h){s=s.replace(h.re,function(m){return '<span class="'+h.cls+'">'+m+'</span>';});});
+  return s;
+}
+
+// Scattered positions (left%, top%, maxWidth)
+var RV_POS=[
+  [4,8,38],[55,5,40],[3,42,36],[57,38,38],[6,72,40],[55,68,36],[28,28,40],[30,58,38]
+];
+function buildReviews(){
+  var qc=document.getElementById('rv-quotes');if(!qc)return;qc.innerHTML='';
+  REVIEWS.forEach(function(r,i){
+    var div=document.createElement('div');div.className='rv-quote';
+    div.innerHTML='<div class="rv-text">'+highlightColors(r.text)+'</div><div class="rv-author">— '+r.author+' · '+r.source+'</div>';
+    qc.appendChild(div);
+  });
+}
+
+var rsc=null,rsctx=null;
+var rvWalkers=[],rvAnimId=null,rvActive=false;
+
+function initRvWalkers(){
+  if(!rsc||!rsctx)return;
+  rsc.width=window.innerWidth;rsc.height=window.innerHeight;
+  // Same parameters as splash screen animation
+  rvWalkers=Array.from({length:22},function(){
+    return{x:Math.random()*window.innerWidth,
+      y:window.innerHeight*0.62+Math.random()*window.innerHeight*0.34,
+      speed:0.5+Math.random()*0.8,
+      color:SPLASH_COLS[Math.floor(Math.random()*SPLASH_COLS.length)],
+      size:7+Math.random()*11,bobPhase:Math.random()*Math.PI*2,
+      dir:Math.random()>0.5?1:-1,opacity:0.35+Math.random()*0.55};
+  });
+}
+
+function animRvWalkers(){
+  if(!rvActive||!rsctx)return;
+  rsctx.clearRect(0,0,rsc.width,rsc.height);
+  rvWalkers.forEach(function(w){
+    w.x+=w.speed*w.dir;w.bobPhase+=0.07;
+    if(w.x>rsc.width+40)w.x=-40;if(w.x<-40)w.x=rsc.width+40;
+    var bob=Math.sin(w.bobPhase)*2,s=w.size;
+    rsctx.save();rsctx.globalAlpha=w.opacity;
+    // shadow
+    rsctx.beginPath();rsctx.ellipse(w.x+1,w.y+s*.6+2,s*.28,s*.1,0,0,Math.PI*2);rsctx.fillStyle='rgba(0,0,0,0.18)';rsctx.fill();
+    // legs
+    var ls=Math.sin(w.bobPhase*2.8)*s*.14;
+    rsctx.beginPath();rsctx.arc(w.x-s*.09,w.y+bob+s*.55+ls,s*.1,0,Math.PI*2);rsctx.fillStyle=w.color+'99';rsctx.fill();
+    rsctx.beginPath();rsctx.arc(w.x+s*.09,w.y+bob+s*.55-ls,s*.1,0,Math.PI*2);rsctx.fillStyle=w.color+'99';rsctx.fill();
+    // body
+    rsctx.beginPath();rsctx.ellipse(w.x,w.y+bob+s*.22,s*.21,s*.3,0,0,Math.PI*2);rsctx.fillStyle=w.color;rsctx.fill();
+    // head
+    rsctx.beginPath();rsctx.arc(w.x,w.y+bob-s*.1,s*.19,0,Math.PI*2);rsctx.fillStyle=w.color;rsctx.fill();
+    // specular
+    rsctx.beginPath();rsctx.arc(w.x-s*.06,w.y+bob-s*.14,s*.07,0,Math.PI*2);rsctx.fillStyle='rgba(255,255,255,0.22)';rsctx.fill();
+    rsctx.restore();
+  });
+  rvAnimId=requestAnimationFrame(animRvWalkers);
+}
+
+// ── FACADE PANEL WALKERS ─────────────────────────────────────────
+var fwCanvas=null,fwCtx=null,fwList=[],fwAnimId=null,fwActive=false;
+var FW_COLS=['#E06666','#F9CB9C','#B6D7A8','#A2C4C9','#DD7E6B','#BF9000','#741B47','#596472','#274E13','#783F04'];
+
+function initFacadeWalkers(){
+  fwCanvas=document.getElementById('facade-walkers');
+  if(!fwCanvas)return;
+  var W=fwCanvas.offsetWidth||fwCanvas.parentElement&&fwCanvas.parentElement.offsetWidth||264;
+  fwCanvas.width=Math.max(W,10);fwCanvas.height=28;
+  fwCtx=fwCanvas.getContext('2d');
+  fwList=Array.from({length:14},function(){
+    return{x:Math.random()*W,y:16+Math.random()*4,speed:0.4+Math.random()*0.7,
+      color:FW_COLS[Math.floor(Math.random()*FW_COLS.length)],
+      size:4+Math.random()*3,bobPhase:Math.random()*Math.PI*2,
+      dir:Math.random()>0.5?1:-1,opacity:0.6+Math.random()*0.35,W:W};
+  });
+}
+function animFacadeWalkers(){
+  if(!fwActive||!fwCtx)return;
+  var W=fwCanvas.width,H=fwCanvas.height;
+  fwCtx.clearRect(0,0,W,H);
+  fwList.forEach(function(w){
+    w.x+=w.speed*w.dir;w.bobPhase+=0.09;
+    if(w.x>W+20)w.x=-20;if(w.x<-20)w.x=W+20;
+    var bob=Math.sin(w.bobPhase)*1.2,s=w.size;
+    fwCtx.save();fwCtx.globalAlpha=w.opacity;
+    // shadow
+    fwCtx.beginPath();fwCtx.ellipse(w.x+0.5,w.y+s*.6+1,s*.22,s*.08,0,0,Math.PI*2);
+    fwCtx.fillStyle='rgba(0,0,0,0.2)';fwCtx.fill();
+    // legs
+    var ls=Math.sin(w.bobPhase*2.8)*s*.13;
+    fwCtx.beginPath();fwCtx.arc(w.x-s*.08,w.y+bob+s*.52+ls,s*.09,0,Math.PI*2);
+    fwCtx.fillStyle=w.color+'99';fwCtx.fill();
+    fwCtx.beginPath();fwCtx.arc(w.x+s*.08,w.y+bob+s*.52-ls,s*.09,0,Math.PI*2);
+    fwCtx.fillStyle=w.color+'99';fwCtx.fill();
+    // body
+    fwCtx.beginPath();fwCtx.ellipse(w.x,w.y+bob+s*.2,s*.18,s*.27,0,0,Math.PI*2);
+    fwCtx.fillStyle=w.color;fwCtx.fill();
+    // head
+    fwCtx.beginPath();fwCtx.arc(w.x,w.y+bob-s*.09,s*.17,0,Math.PI*2);
+    fwCtx.fillStyle=w.color;fwCtx.fill();
+    // specular
+    fwCtx.beginPath();fwCtx.arc(w.x-s*.05,w.y+bob-s*.13,s*.06,0,Math.PI*2);
+    fwCtx.fillStyle='rgba(255,255,255,0.25)';fwCtx.fill();
+    fwCtx.restore();
+  });
+  fwAnimId=requestAnimationFrame(animFacadeWalkers);
+}
+function startFacadeWalkers(){
+  if(fwActive)return;
+  fwActive=true;
+  initFacadeWalkers();
+  animFacadeWalkers();
+}
+function stopFacadeWalkers(){
+  fwActive=false;
+  if(fwAnimId){cancelAnimationFrame(fwAnimId);fwAnimId=null;}
+  if(fwCtx&&fwCanvas)fwCtx.clearRect(0,0,fwCanvas.width,fwCanvas.height);
+}
+// ── MINI MAP: dedicated MapLibre instance (top-down, no pitch) ──
+var miniMap=null,miniMapLoaded=false;
+function initMiniMap(){
+  if(miniMap)return;
+  var container=document.getElementById('mini-map-gl');
+  if(!container)return;
+  miniMap=new maplibregl.Map({
+    container:'mini-map-gl',
+    style:'https://tiles.openfreemap.org/styles/dark',
+    center:[29.0308,41.0345],
+    zoom:13.8,
+    pitch:0,
+    bearing:0,
+    interactive:false,
+    attributionControl:false
+  });
+  miniMap.on('load',function(){
+    miniMapLoaded=true;
+    miniMap.resize();
+    drawMiniDots();
+  });
+  miniMap.on('render',drawMiniDots);
+}
+
+function drawMiniDots(){
+  var c=document.getElementById('mini-map-preview');
+  if(!c||!miniMapLoaded)return;
+  var rect=c.getBoundingClientRect();
+  var W=Math.round(rect.width)||264,H=Math.round(rect.height)||80;
+  if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+  var ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  FACADE_DATA.forEach(function(p,i){
+    var px=miniMap.project([p.lon,p.lat]);
+    var mc=miniMap.getCanvas();
+    var cx2=px.x*(W/mc.width);
+    var cy2=px.y*(H/mc.height);
+    dotSeed[i].forEach(function(s){
+      var spread=4;
+      var x=cx2+Math.cos(s.angle)*s.dist*spread;
+      var y=cy2+Math.sin(s.angle)*s.dist*spread;
+      ctx.beginPath();ctx.arc(x,y,Math.max(0.6,s.r*0.42),0,Math.PI*2);
+      ctx.fillStyle=(p.colors[s.ci]||p.colors[0])+'cc';ctx.fill();
+    });
+    ctx.beginPath();ctx.arc(cx2,cy2,1.4,0,Math.PI*2);
+    ctx.fillStyle=(p.colors[0]||'#fff')+'ff';ctx.fill();
+  });
+}
+
+function drawMiniMapPreview(){
+  if(!miniMap){
+    initMiniMap();
+  } else {
+    miniMap.resize();
+    if(miniMapLoaded)drawMiniDots();
+  }
+}
+window.addEventListener('resize',function(){if(fwActive)initFacadeWalkers();if(miniMapLoaded)drawMiniDots();});
+function showReviews(){
+  rvActive=true;
+  document.getElementById('info').style.display='none';
+  document.getElementById('hdr').style.display='none';
+  document.querySelectorAll('.lpanel').forEach(function(el){el.style.display='none';});
+  var p=document.getElementById('rv-panel');if(p)p.classList.add('vis');
+  // Initialize canvas lazily after panel becomes visible (DOM order issue)
+  rsc=document.getElementById('rsc');
+  rsctx=rsc?rsc.getContext('2d'):null;
+  var logo=document.getElementById('rv-logo');
+  if(logo&&!logo.childNodes.length){
+    [{l:'I',c:'#e8a84f'},{l:'C',c:'#4f8ef7'},{l:'A',c:'#f74fa0'},{l:'D',c:'#4fc97a'},{l:'I',c:'#c97af7'},{l:'Y',c:'#f7c84f'},{l:'E',c:'#64b4ff'}].forEach(function(o){var s=document.createElement('span');s.textContent=o.l;s.style.color=o.c;logo.appendChild(s);});
+  }
+  buildReviews();initRvWalkers();animRvWalkers();
+}
+function hideReviews(){
+  rvActive=false;
+  document.getElementById('info').style.display='';
+  document.getElementById('hdr').style.display='';
+  var p=document.getElementById('rv-panel');if(p)p.classList.remove('vis');
+  if(rvAnimId){cancelAnimationFrame(rvAnimId);rvAnimId=null;}
+  if(rsctx)rsctx.clearRect(0,0,rsc.width,rsc.height);
+}
+window.addEventListener('resize',function(){if(rvActive&&rsc){rsc.width=window.innerWidth;rsc.height=window.innerHeight;initRvWalkers();}});
+</script>
+
+<!-- REVIEWS PANEL (scene 9) -->
+<div id="rv-panel">
+  <canvas id="rsc"></canvas>
+  <div id="rv-inner">
+    <div id="rv-header">
+      <div id="rv-logo"></div>
+      <div style="font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.3)">Visitor Voices · İcadiye Caddesi · Kuzguncuk</div>
+    </div>
+    <div id="rv-quotes"></div>
+  </div>
+</div>
+</body>
+</html>
